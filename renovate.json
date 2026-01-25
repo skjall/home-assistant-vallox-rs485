@@ -1,0 +1,26 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "baseBranches": ["development"],
+  "labels": [
+    "dependencies"
+  ],
+  "pip_requirements": {
+    "managerFilePatterns": [
+      "/requirements_test\\.txt$/"
+    ]
+  },
+  "packageRules": [
+    {
+      "matchManagers": [
+        "pip_requirements"
+      ],
+      "groupName": "Python dependencies"
+    }
+  ],
+  "schedule": [
+    "before 6am on monday"
+  ]
+}

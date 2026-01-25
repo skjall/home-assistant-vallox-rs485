@@ -1,0 +1,46 @@
+name: Release to GitHub
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create clean release commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create orphan branch with only current state
+          git checkout --orphan github-release
+          git add -A
+          git commit -m "Release ${{ github.ref_name }}"
+
+      - name: Push to GitHub
+        run: |
+          git remote add github https://x-access-token:${{ secrets.GH_RELEASE_TOKEN }}@github.com/skjall/homeassistant-vallox-rs485.git
+          git push github github-release:main --force
+          git tag -f ${{ github.ref_name }}
+          git push github ${{ github.ref_name }} --force
+
+      - name: Create GitHub Release
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GH_RELEASE_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/skjall/homeassistant-vallox-rs485/releases \
+            -d '{
+              "tag_name": "${{ github.ref_name }}",
+              "name": "${{ github.ref_name }}",
+              "body": "Release ${{ github.ref_name }}",
+              "draft": false,
+              "prerelease": false
+            }'

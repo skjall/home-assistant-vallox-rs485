@@ -1,0 +1,207 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "Nome",
+          "scan_interval": "Intervalo de verificação (segundos)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Nome",
+          "scan_interval": "Intervalo de verificação (segundos)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar Vallox RS485",
+        "description": "Altere as configurações do sistema de ventilação Vallox.\n\nPorta série: `{serial_port}`",
+        "data": {
+          "scan_interval": "Intervalo de verificação (segundos)",
+          "device_address": "Endereço do barramento"
+        },
+        "data_description": {
+          "scan_interval": "Frequência de consulta à unidade de ventilação (10-300 segundos).",
+          "device_address": "Endereço RS485 do barramento. Altere apenas em caso de conflito de endereços."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Falha ao conectar à porta série",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "O dispositivo já está configurado",
+      "no_serial_ports": "Nenhuma porta série encontrada",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "Reconfiguração falhou",
+      "reconfigure_successful": "Reconfiguração bem-sucedida"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Temperatura exterior"
+      },
+      "temp_exhaust": {
+        "name": "Temperatura de exaustão"
+      },
+      "temp_inside": {
+        "name": "Temperatura interior"
+      },
+      "temp_incoming": {
+        "name": "Temperatura de insuflação"
+      },
+      "humidity": {
+        "name": "Humidade"
+      },
+      "humidity_sensor1": {
+        "name": "Sensor de humidade 1"
+      },
+      "humidity_sensor2": {
+        "name": "Sensor de humidade 2"
+      },
+      "fan_speed": {
+        "name": "Velocidade do ventilador"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Eficiência de recuperação"
+      },
+      "last_fault": {
+        "name": "Último erro"
+      },
+      "fireplace_countdown": {
+        "name": "Contagem lareira"
+      },
+      "post_heating_on_counter": {
+        "name": "Contador pós-aquecimento"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Ventilador de insuflação"
+      },
+      "exhaust_fan": {
+        "name": "Ventilador de exaustão"
+      },
+      "pre_heating": {
+        "name": "Pré-aquecimento"
+      },
+      "fireplace_booster": {
+        "name": "Modo lareira"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Falha"
+      },
+      "filter_guard": {
+        "name": "Indicador de filtro"
+      },
+      "service_reminder": {
+        "name": "Lembrete de manutenção"
+      },
+      "heating_indicator": {
+        "name": "Aquecimento ativo"
+      },
+      "remote_control_working": {
+        "name": "Controle remoto"
+      },
+      "fireplace_boost_active": {
+        "name": "Lareira/Boost ativo"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Alimentação"
+      },
+      "heating_state": {
+        "name": "Aquecimento"
+      },
+      "co2_adjust": {
+        "name": "Ajuste de CO2"
+      },
+      "rh_adjust": {
+        "name": "Ajuste de humidade"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Setpoint de aquecimento"
+      },
+      "preheating_setpoint": {
+        "name": "Setpoint de pré-aquecimento"
+      },
+      "bypass_setpoint": {
+        "name": "Setpoint de bypass"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Limiar proteção gelo"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Setpoint de degelo"
+      },
+      "fan_speed_min": {
+        "name": "Velocidade mínima"
+      },
+      "fan_speed_max": {
+        "name": "Velocidade máxima"
+      },
+      "service_reminder_months": {
+        "name": "Intervalo de manutenção"
+      },
+      "co2_setpoint": {
+        "name": "Setpoint de CO2"
+      },
+      "basic_humidity_level": {
+        "name": "Limiar de humidade"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Ventilação"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Conexão Vallox RS485 falhou",
+      "description": "Falha ao conectar à porta série `{serial_port}`. Verifique:\n\n1. O adaptador USB-RS485 está conectado\n2. O adaptador está corretamente conectado à unidade Vallox\n3. O caminho da porta série está correto\n\nA integração será restaurada automaticamente quando a conexão for restabelecida."
+    },
+    "communication_timeout": {
+      "title": "Timeout de comunicação Vallox RS485",
+      "description": "A comunicação com a unidade Vallox em `{serial_port}` expirou. Verifique:\n\n1. A cablagem RS485 está correta (conexões A/B)\n2. A unidade Vallox está ligada\n3. Nenhum outro dispositivo está causando conflitos no barramento\n\nA integração será restaurada automaticamente quando a comunicação for restabelecida."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}

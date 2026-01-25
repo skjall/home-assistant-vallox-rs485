@@ -1,0 +1,207 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Налаштувати Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "Назва",
+          "scan_interval": "Інтервал опитування (секунди)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Назва",
+          "scan_interval": "Інтервал опитування (секунди)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "Переналаштувати Vallox RS485",
+        "description": "Змініть налаштування системи вентиляції Vallox.\n\nПослідовний порт: `{serial_port}`",
+        "data": {
+          "scan_interval": "Інтервал опитування (секунди)",
+          "device_address": "Адреса шини"
+        },
+        "data_description": {
+          "scan_interval": "Як часто опитувати вентиляційний блок (10-300 секунд).",
+          "device_address": "Адреса шини RS485. Змінюйте лише при конфліктах адрес."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не вдалося підключитися до послідовного порту",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "Пристрій вже налаштовано",
+      "no_serial_ports": "Послідовні порти не знайдено",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "Не вдалося переналаштувати",
+      "reconfigure_successful": "Переналаштування успішне"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Зовнішня температура"
+      },
+      "temp_exhaust": {
+        "name": "Температура витяжного повітря"
+      },
+      "temp_inside": {
+        "name": "Внутрішня температура"
+      },
+      "temp_incoming": {
+        "name": "Температура припливного повітря"
+      },
+      "humidity": {
+        "name": "Вологість"
+      },
+      "humidity_sensor1": {
+        "name": "Датчик вологості 1"
+      },
+      "humidity_sensor2": {
+        "name": "Датчик вологості 2"
+      },
+      "fan_speed": {
+        "name": "Швидкість вентилятора"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Ефективність рекуперації"
+      },
+      "last_fault": {
+        "name": "Остання помилка"
+      },
+      "fireplace_countdown": {
+        "name": "Відлік каміна"
+      },
+      "post_heating_on_counter": {
+        "name": "Лічильник дообігріву"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Припливний вентилятор"
+      },
+      "exhaust_fan": {
+        "name": "Витяжний вентилятор"
+      },
+      "pre_heating": {
+        "name": "Попередній нагрів"
+      },
+      "fireplace_booster": {
+        "name": "Камінний режим"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Несправність"
+      },
+      "filter_guard": {
+        "name": "Індикатор фільтра"
+      },
+      "service_reminder": {
+        "name": "Нагадування про сервіс"
+      },
+      "heating_indicator": {
+        "name": "Опалення активне"
+      },
+      "remote_control_working": {
+        "name": "Пульт керування"
+      },
+      "fireplace_boost_active": {
+        "name": "Камін/Boost активний"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Живлення"
+      },
+      "heating_state": {
+        "name": "Опалення"
+      },
+      "co2_adjust": {
+        "name": "Регулювання CO2"
+      },
+      "rh_adjust": {
+        "name": "Регулювання вологості"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Уставка опалення"
+      },
+      "preheating_setpoint": {
+        "name": "Уставка попереднього нагріву"
+      },
+      "bypass_setpoint": {
+        "name": "Уставка байпасу"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Поріг захисту від морозу"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Уставка розморожування"
+      },
+      "fan_speed_min": {
+        "name": "Мінімальна швидкість вентилятора"
+      },
+      "fan_speed_max": {
+        "name": "Максимальна швидкість вентилятора"
+      },
+      "service_reminder_months": {
+        "name": "Інтервал нагадування про сервіс"
+      },
+      "co2_setpoint": {
+        "name": "Уставка CO2"
+      },
+      "basic_humidity_level": {
+        "name": "Поріг вологості"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Вентиляція"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Помилка підключення Vallox RS485",
+      "description": "Не вдалося підключитися до послідовного порту `{serial_port}`. Перевірте:\n\n1. USB-RS485 адаптер підключено\n2. Адаптер правильно підключено до блоку Vallox\n3. Шлях до послідовного порту правильний\n\nІнтеграція автоматично відновиться після відновлення з'єднання."
+    },
+    "communication_timeout": {
+      "title": "Тайм-аут зв'язку Vallox RS485",
+      "description": "Зв'язок з блоком Vallox на `{serial_port}` вичерпав час очікування. Перевірте:\n\n1. Кабелі RS485 підключені правильно (з'єднання A/B)\n2. Блок Vallox увімкнено\n3. Жодні інші пристрої не створюють конфліктів на шині\n\nІнтеграція автоматично відновиться після відновлення зв'язку."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}

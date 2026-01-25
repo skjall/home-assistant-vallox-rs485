@@ -1,0 +1,207 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vallox RS485 instellen",
+        "description": "Configureer de verbinding met uw Vallox ventilatiesysteem.",
+        "data": {
+          "serial_port": "RS485-adapter",
+          "name": "Naam",
+          "scan_interval": "Scaninterval (seconden)",
+          "device_address": "Busadres"
+        },
+        "data_description": {
+          "serial_port": "Selecteer de USB-RS485-adapter die is aangesloten op uw Vallox-unit.",
+          "scan_interval": "Hoe vaak de ventilatie-eenheid wordt bevraagd (10-300 seconden).",
+          "device_address": "RS485 busadres voor deze integratie. Alleen wijzigen bij adresconflicten."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilatie ontdekt",
+        "description": "Een Vallox ventilatiesysteem is gedetecteerd op **{adapter}**.\n\nPoort: `{port}`",
+        "data": {
+          "name": "Naam",
+          "scan_interval": "Scaninterval (seconden)",
+          "device_address": "Busadres"
+        },
+        "data_description": {
+          "scan_interval": "Hoe vaak de ventilatie-eenheid wordt bevraagd (10-300 seconden).",
+          "device_address": "RS485 busadres voor deze integratie. Alleen wijzigen bij adresconflicten."
+        }
+      },
+      "reconfigure": {
+        "title": "Vallox RS485 herconfigureren",
+        "description": "Wijzig instellingen voor uw Vallox ventilatiesysteem.\n\nSeriële poort: `{serial_port}`",
+        "data": {
+          "scan_interval": "Scaninterval (seconden)",
+          "device_address": "Busadres"
+        },
+        "data_description": {
+          "scan_interval": "Hoe vaak de ventilatie-eenheid wordt bevraagd (10-300 seconden).",
+          "device_address": "RS485 busadres. Alleen wijzigen bij adresconflicten."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kan geen verbinding maken met seriële poort",
+      "no_vallox_traffic": "Geen Vallox-verkeer gedetecteerd op deze poort"
+    },
+    "abort": {
+      "already_configured": "Apparaat is al geconfigureerd",
+      "no_serial_ports": "Geen seriële poorten gevonden",
+      "no_vallox_traffic": "Geen Vallox-verkeer gedetecteerd op deze poort",
+      "reconfigure_failed": "Herconfiguratie mislukt",
+      "reconfigure_successful": "Herconfiguratie geslaagd"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Buitentemperatuur"
+      },
+      "temp_exhaust": {
+        "name": "Afvoertemperatuur"
+      },
+      "temp_inside": {
+        "name": "Binnentemperatuur"
+      },
+      "temp_incoming": {
+        "name": "Toevoertemperatuur"
+      },
+      "humidity": {
+        "name": "Luchtvochtigheid"
+      },
+      "humidity_sensor1": {
+        "name": "Vochtigheidssensor 1"
+      },
+      "humidity_sensor2": {
+        "name": "Vochtigheidssensor 2"
+      },
+      "fan_speed": {
+        "name": "Ventilatorsnelheid"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Warmteterugwinningsefficiëntie"
+      },
+      "last_fault": {
+        "name": "Laatste fout"
+      },
+      "fireplace_countdown": {
+        "name": "Haard-aftelling"
+      },
+      "post_heating_on_counter": {
+        "name": "Na-verwarmingsteller"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Toevoerventilator"
+      },
+      "exhaust_fan": {
+        "name": "Afvoerventilator"
+      },
+      "pre_heating": {
+        "name": "Voorverwarming"
+      },
+      "fireplace_booster": {
+        "name": "Haard-boost"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Storing"
+      },
+      "filter_guard": {
+        "name": "Filterindicator"
+      },
+      "service_reminder": {
+        "name": "Onderhoudsherinnering"
+      },
+      "heating_indicator": {
+        "name": "Verwarming actief"
+      },
+      "remote_control_working": {
+        "name": "Afstandsbediening"
+      },
+      "fireplace_boost_active": {
+        "name": "Haard/Boost actief"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Aan/Uit"
+      },
+      "heating_state": {
+        "name": "Verwarming"
+      },
+      "co2_adjust": {
+        "name": "CO2-aanpassing"
+      },
+      "rh_adjust": {
+        "name": "Vochtigheidsaanpassing"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Verwarmingssetpoint"
+      },
+      "preheating_setpoint": {
+        "name": "Voorverwarmingssetpoint"
+      },
+      "bypass_setpoint": {
+        "name": "Bypass-setpoint"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Vorstbeschermingsdrempel"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Ontdooiingssetpoint"
+      },
+      "fan_speed_min": {
+        "name": "Minimale ventilatorsnelheid"
+      },
+      "fan_speed_max": {
+        "name": "Maximale ventilatorsnelheid"
+      },
+      "service_reminder_months": {
+        "name": "Onderhoudsherinneringsinterval"
+      },
+      "co2_setpoint": {
+        "name": "CO2-setpoint"
+      },
+      "basic_humidity_level": {
+        "name": "Vochtigheidsdrempel"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Ventilatie"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Vallox RS485 verbinding mislukt",
+      "description": "Kan geen verbinding maken met seriële poort `{serial_port}`. Controleer:\n\n1. De USB-RS485 adapter is aangesloten\n2. De adapter is correct verbonden met de Vallox-unit\n3. Het pad naar de seriële poort is correct\n\nDe integratie herstelt automatisch wanneer de verbinding is hersteld."
+    },
+    "communication_timeout": {
+      "title": "Vallox RS485 communicatie timeout",
+      "description": "Communicatie met de Vallox-unit op `{serial_port}` is verlopen. Controleer:\n\n1. De RS485-bedrading is correct (A/B-verbindingen)\n2. De Vallox-unit is ingeschakeld\n3. Geen andere apparaten veroorzaken conflicten op de bus\n\nDe integratie herstelt automatisch wanneer de communicatie is hersteld."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Seriële communicatiefout: {error}"
+    },
+    "timeout_error": {
+      "message": "Communicatie timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Schrijven naar register {register} mislukt: {error}"
+    }
+  }
+}

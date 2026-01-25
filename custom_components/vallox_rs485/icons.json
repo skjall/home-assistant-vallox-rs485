@@ -1,0 +1,173 @@
+{
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "default": "mdi:thermometer"
+      },
+      "temp_exhaust": {
+        "default": "mdi:thermometer"
+      },
+      "temp_inside": {
+        "default": "mdi:home-thermometer"
+      },
+      "temp_incoming": {
+        "default": "mdi:thermometer"
+      },
+      "humidity": {
+        "default": "mdi:water-percent"
+      },
+      "humidity_sensor1": {
+        "default": "mdi:water-percent"
+      },
+      "humidity_sensor2": {
+        "default": "mdi:water-percent"
+      },
+      "fan_speed": {
+        "default": "mdi:fan"
+      },
+      "co2_ppm": {
+        "default": "mdi:molecule-co2"
+      },
+      "heat_recovery_efficiency": {
+        "default": "mdi:percent"
+      },
+      "last_fault": {
+        "default": "mdi:alert-circle"
+      },
+      "fireplace_countdown": {
+        "default": "mdi:timer"
+      },
+      "post_heating_on_counter": {
+        "default": "mdi:counter"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "default": "mdi:fan",
+        "state": {
+          "on": "mdi:fan",
+          "off": "mdi:fan-off"
+        }
+      },
+      "exhaust_fan": {
+        "default": "mdi:fan",
+        "state": {
+          "on": "mdi:fan",
+          "off": "mdi:fan-off"
+        }
+      },
+      "pre_heating": {
+        "default": "mdi:radiator",
+        "state": {
+          "on": "mdi:radiator",
+          "off": "mdi:radiator-off"
+        }
+      },
+      "fireplace_booster": {
+        "default": "mdi:fireplace",
+        "state": {
+          "on": "mdi:fireplace",
+          "off": "mdi:fireplace-off"
+        }
+      },
+      "damper_motor_position": {
+        "default": "mdi:valve",
+        "state": {
+          "on": "mdi:valve-open",
+          "off": "mdi:valve-closed"
+        }
+      },
+      "fault_signal": {
+        "default": "mdi:alert-circle",
+        "state": {
+          "on": "mdi:alert-circle",
+          "off": "mdi:check-circle"
+        }
+      },
+      "filter_guard": {
+        "default": "mdi:air-filter",
+        "state": {
+          "on": "mdi:alert",
+          "off": "mdi:air-filter"
+        }
+      },
+      "service_reminder": {
+        "default": "mdi:wrench-clock",
+        "state": {
+          "on": "mdi:wrench-clock",
+          "off": "mdi:check-circle"
+        }
+      },
+      "heating_indicator": {
+        "default": "mdi:radiator",
+        "state": {
+          "on": "mdi:radiator",
+          "off": "mdi:radiator-off"
+        }
+      }
+    },
+    "switch": {
+      "power_state": {
+        "default": "mdi:power",
+        "state": {
+          "on": "mdi:power",
+          "off": "mdi:power-off"
+        }
+      },
+      "heating_state": {
+        "default": "mdi:radiator",
+        "state": {
+          "on": "mdi:radiator",
+          "off": "mdi:radiator-off"
+        }
+      },
+      "co2_adjust": {
+        "default": "mdi:molecule-co2"
+      },
+      "rh_adjust": {
+        "default": "mdi:water-percent"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "default": "mdi:thermometer"
+      },
+      "preheating_setpoint": {
+        "default": "mdi:thermometer"
+      },
+      "bypass_setpoint": {
+        "default": "mdi:thermometer"
+      },
+      "input_fan_stop_threshold": {
+        "default": "mdi:snowflake-alert"
+      },
+      "cell_defrost_setpoint": {
+        "default": "mdi:snowflake-melt"
+      },
+      "fan_speed_min": {
+        "default": "mdi:fan-chevron-down"
+      },
+      "fan_speed_max": {
+        "default": "mdi:fan-chevron-up"
+      },
+      "service_reminder_months": {
+        "default": "mdi:calendar-clock"
+      },
+      "co2_setpoint": {
+        "default": "mdi:molecule-co2"
+      },
+      "basic_humidity_level": {
+        "default": "mdi:water-percent"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "default": "mdi:fan",
+        "state": {
+          "on": "mdi:fan",
+          "off": "mdi:fan-off"
+        }
+      }
+    }
+  }
+}

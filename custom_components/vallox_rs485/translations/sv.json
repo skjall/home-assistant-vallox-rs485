@@ -1,0 +1,207 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Konfigurera Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "Namn",
+          "scan_interval": "Skanningsintervall (sekunder)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Namn",
+          "scan_interval": "Skanningsintervall (sekunder)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "Omkonfigurera Vallox RS485",
+        "description": "Ändra inställningar för ditt Vallox ventilationssystem.\n\nSerieport: `{serial_port}`",
+        "data": {
+          "scan_interval": "Skanningsintervall (sekunder)",
+          "device_address": "Bussadress"
+        },
+        "data_description": {
+          "scan_interval": "Hur ofta ventilationsenheten ska tillfrågas (10-300 sekunder).",
+          "device_address": "RS485-bussadress. Ändra endast vid adresskonflikter."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Kunde inte ansluta till serieporten",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "Enheten är redan konfigurerad",
+      "no_serial_ports": "Inga serieportar hittades",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "Omkonfigurering misslyckades",
+      "reconfigure_successful": "Omkonfigurering lyckades"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Utetemperatur"
+      },
+      "temp_exhaust": {
+        "name": "Frånluftstemperatur"
+      },
+      "temp_inside": {
+        "name": "Innetemperatur"
+      },
+      "temp_incoming": {
+        "name": "Tilluftstemperatur"
+      },
+      "humidity": {
+        "name": "Luftfuktighet"
+      },
+      "humidity_sensor1": {
+        "name": "Fuktighetssensor 1"
+      },
+      "humidity_sensor2": {
+        "name": "Fuktighetssensor 2"
+      },
+      "fan_speed": {
+        "name": "Fläkthastighet"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Värmeåtervinningseffektivitet"
+      },
+      "last_fault": {
+        "name": "Senaste fel"
+      },
+      "fireplace_countdown": {
+        "name": "Brasnedräkning"
+      },
+      "post_heating_on_counter": {
+        "name": "Eftervärmeräknare"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Tilluftsfläkt"
+      },
+      "exhaust_fan": {
+        "name": "Frånluftsfläkt"
+      },
+      "pre_heating": {
+        "name": "Förvärme"
+      },
+      "fireplace_booster": {
+        "name": "Brasförstärkare"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Fel"
+      },
+      "filter_guard": {
+        "name": "Filterindikator"
+      },
+      "service_reminder": {
+        "name": "Servicepåminnelse"
+      },
+      "heating_indicator": {
+        "name": "Uppvärmning aktiv"
+      },
+      "remote_control_working": {
+        "name": "Fjärrkontroll"
+      },
+      "fireplace_boost_active": {
+        "name": "Brasa/Boost aktiv"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Ström"
+      },
+      "heating_state": {
+        "name": "Värme"
+      },
+      "co2_adjust": {
+        "name": "CO2-justering"
+      },
+      "rh_adjust": {
+        "name": "Fuktighetsjustering"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Värmeinställning"
+      },
+      "preheating_setpoint": {
+        "name": "Förvärmeinställning"
+      },
+      "bypass_setpoint": {
+        "name": "Bypassinställning"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Frostskyddsgräns"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Avfrostningsinställning"
+      },
+      "fan_speed_min": {
+        "name": "Minimum fläkthastighet"
+      },
+      "fan_speed_max": {
+        "name": "Maximum fläkthastighet"
+      },
+      "service_reminder_months": {
+        "name": "Servicepåminnelseintervall"
+      },
+      "co2_setpoint": {
+        "name": "CO2-inställning"
+      },
+      "basic_humidity_level": {
+        "name": "Fuktighetsgräns"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Ventilation"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Vallox RS485 anslutning misslyckades",
+      "description": "Kunde inte ansluta till serieporten `{serial_port}`. Kontrollera:\n\n1. USB-RS485-adaptern är ansluten\n2. Adaptern är korrekt ansluten till Vallox-enheten\n3. Serieportens sökväg är korrekt\n\nIntegrationen återställs automatiskt när anslutningen är återupprättad."
+    },
+    "communication_timeout": {
+      "title": "Vallox RS485 kommunikations-timeout",
+      "description": "Kommunikation med Vallox-enheten på `{serial_port}` överskred tidsgränsen. Kontrollera:\n\n1. RS485-kabeldragningen är korrekt (A/B-anslutningar)\n2. Vallox-enheten är påslagen\n3. Inga andra enheter orsakar konflikter på bussen\n\nIntegrationen återställs automatiskt när kommunikationen är återupprättad."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}
