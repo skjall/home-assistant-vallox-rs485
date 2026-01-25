@@ -1,0 +1,201 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Skonfiguruj Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "Nazwa",
+          "scan_interval": "Interwał skanowania (sekundy)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Nazwa",
+          "scan_interval": "Interwał skanowania (sekundy)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "Rekonfiguruj Vallox RS485",
+        "description": "Zmień ustawienia systemu wentylacji Vallox.\n\nPort szeregowy: `{serial_port}`",
+        "data": {
+          "scan_interval": "Interwał skanowania (sekundy)",
+          "device_address": "Adres magistrali"
+        },
+        "data_description": {
+          "scan_interval": "Jak często odpytywać jednostkę wentylacyjną (10-300 sekund).",
+          "device_address": "Adres magistrali RS485. Zmieniaj tylko w przypadku konfliktów adresów."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nie można połączyć z portem szeregowym",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "Urządzenie jest już skonfigurowane",
+      "no_serial_ports": "Nie znaleziono portów szeregowych",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "Rekonfiguracja nie powiodła się",
+      "reconfigure_successful": "Rekonfiguracja zakończona sukcesem"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Temperatura zewnętrzna"
+      },
+      "temp_exhaust": {
+        "name": "Temperatura wywiewu"
+      },
+      "temp_inside": {
+        "name": "Temperatura wewnętrzna"
+      },
+      "temp_incoming": {
+        "name": "Temperatura nawiewu"
+      },
+      "humidity": {
+        "name": "Wilgotność"
+      },
+      "humidity_sensor1": {
+        "name": "Czujnik wilgotności 1"
+      },
+      "humidity_sensor2": {
+        "name": "Czujnik wilgotności 2"
+      },
+      "fan_speed": {
+        "name": "Prędkość wentylatora"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Sprawność odzysku ciepła"
+      },
+      "last_fault": {
+        "name": "Ostatni błąd"
+      },
+      "fireplace_countdown": {
+        "name": "Odliczanie kominka"
+      },
+      "post_heating_on_counter": {
+        "name": "Licznik dogrzewania"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Wentylator nawiewny"
+      },
+      "exhaust_fan": {
+        "name": "Wentylator wywiewny"
+      },
+      "pre_heating": {
+        "name": "Podgrzewanie wstępne"
+      },
+      "fireplace_booster": {
+        "name": "Tryb kominkowy"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Awaria"
+      },
+      "filter_guard": {
+        "name": "Wskaźnik filtra"
+      },
+      "service_reminder": {
+        "name": "Przypomnienie o serwisie"
+      },
+      "heating_indicator": {
+        "name": "Ogrzewanie aktywne"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Zasilanie"
+      },
+      "heating_state": {
+        "name": "Ogrzewanie"
+      },
+      "co2_adjust": {
+        "name": "Regulacja CO2"
+      },
+      "rh_adjust": {
+        "name": "Regulacja wilgotności"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Nastawa ogrzewania"
+      },
+      "preheating_setpoint": {
+        "name": "Nastawa podgrzewania"
+      },
+      "bypass_setpoint": {
+        "name": "Nastawa bypassu"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Próg ochrony przed mrozem"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Nastawa odszraniania"
+      },
+      "fan_speed_min": {
+        "name": "Minimalna prędkość wentylatora"
+      },
+      "fan_speed_max": {
+        "name": "Maksymalna prędkość wentylatora"
+      },
+      "service_reminder_months": {
+        "name": "Interwał przypomnienia o serwisie"
+      },
+      "co2_setpoint": {
+        "name": "Nastawa CO2"
+      },
+      "basic_humidity_level": {
+        "name": "Próg wilgotności"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Wentylacja"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Połączenie Vallox RS485 nie powiodło się",
+      "description": "Nie można połączyć się z portem szeregowym `{serial_port}`. Proszę sprawdzić:\n\n1. Adapter USB-RS485 jest podłączony\n2. Adapter jest prawidłowo podłączony do jednostki Vallox\n3. Ścieżka portu szeregowego jest prawidłowa\n\nIntegracja automatycznie przywróci działanie po przywróceniu połączenia."
+    },
+    "communication_timeout": {
+      "title": "Limit czasu komunikacji Vallox RS485",
+      "description": "Przekroczono limit czasu komunikacji z jednostką Vallox na `{serial_port}`. Proszę sprawdzić:\n\n1. Okablowanie RS485 jest prawidłowe (połączenia A/B)\n2. Jednostka Vallox jest włączona\n3. Żadne inne urządzenia nie powodują konfliktów na magistrali\n\nIntegracja automatycznie przywróci działanie po przywróceniu komunikacji."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}

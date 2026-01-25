@@ -1,0 +1,201 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vallox RS485 einrichten",
+        "description": "Verbindung zu Ihrer Vallox Lüftungsanlage konfigurieren.",
+        "data": {
+          "serial_port": "RS485-Adapter",
+          "name": "Name",
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "device_address": "Bus-Adresse"
+        },
+        "data_description": {
+          "serial_port": "Wählen Sie den USB-RS485-Adapter aus, der mit Ihrer Vallox-Anlage verbunden ist.",
+          "scan_interval": "Wie oft die Lüftungsanlage nach Updates abgefragt werden soll (10-300 Sekunden).",
+          "device_address": "RS485-Bus-Adresse für diese Integration. Nur ändern bei Adresskonflikten."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox Lüftung erkannt",
+        "description": "Eine Vallox Lüftungsanlage wurde erkannt auf **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Name",
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "device_address": "Bus-Adresse"
+        },
+        "data_description": {
+          "scan_interval": "Wie oft die Lüftungsanlage nach Updates abgefragt werden soll (10-300 Sekunden).",
+          "device_address": "RS485-Bus-Adresse für diese Integration. Nur ändern bei Adresskonflikten."
+        }
+      },
+      "reconfigure": {
+        "title": "Vallox RS485 neu konfigurieren",
+        "description": "Einstellungen für Ihre Vallox Lüftungsanlage ändern.\n\nSerieller Port: `{serial_port}`",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "device_address": "Bus-Adresse"
+        },
+        "data_description": {
+          "scan_interval": "Wie oft die Lüftungsanlage nach Updates abgefragt werden soll (10-300 Sekunden).",
+          "device_address": "RS485-Bus-Adresse. Nur ändern bei Adresskonflikten."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum seriellen Port fehlgeschlagen",
+      "no_vallox_traffic": "Kein Vallox-Datenverkehr auf diesem Port erkannt"
+    },
+    "abort": {
+      "already_configured": "Gerät ist bereits konfiguriert",
+      "no_serial_ports": "Keine seriellen Ports gefunden",
+      "no_vallox_traffic": "Kein Vallox-Datenverkehr auf diesem Port erkannt",
+      "reconfigure_failed": "Neukonfiguration fehlgeschlagen",
+      "reconfigure_successful": "Neukonfiguration erfolgreich"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Außentemperatur"
+      },
+      "temp_exhaust": {
+        "name": "Ablufttemperatur"
+      },
+      "temp_inside": {
+        "name": "Innentemperatur"
+      },
+      "temp_incoming": {
+        "name": "Zulufttemperatur"
+      },
+      "humidity": {
+        "name": "Luftfeuchtigkeit"
+      },
+      "humidity_sensor1": {
+        "name": "Feuchtigkeitssensor 1"
+      },
+      "humidity_sensor2": {
+        "name": "Feuchtigkeitssensor 2"
+      },
+      "fan_speed": {
+        "name": "Lüfterstufe"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Wärmerückgewinnungseffizienz"
+      },
+      "last_fault": {
+        "name": "Letzter Fehler"
+      },
+      "fireplace_countdown": {
+        "name": "Kamin-Countdown"
+      },
+      "post_heating_on_counter": {
+        "name": "Nachheizungszähler"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Zuluftventilator"
+      },
+      "exhaust_fan": {
+        "name": "Abluftventilator"
+      },
+      "pre_heating": {
+        "name": "Vorheizung"
+      },
+      "fireplace_booster": {
+        "name": "Kamin-Booster"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Störung"
+      },
+      "filter_guard": {
+        "name": "Filterwächter"
+      },
+      "service_reminder": {
+        "name": "Wartungserinnerung"
+      },
+      "heating_indicator": {
+        "name": "Heizung aktiv"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Betrieb"
+      },
+      "heating_state": {
+        "name": "Heizung"
+      },
+      "co2_adjust": {
+        "name": "CO2-Anpassung"
+      },
+      "rh_adjust": {
+        "name": "Feuchtigkeitsanpassung"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Heizungssollwert"
+      },
+      "preheating_setpoint": {
+        "name": "Vorheizungssollwert"
+      },
+      "bypass_setpoint": {
+        "name": "Bypass-Sollwert"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Frostschutz-Schwellwert"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Zellabtauung-Sollwert"
+      },
+      "fan_speed_min": {
+        "name": "Minimale Lüfterstufe"
+      },
+      "fan_speed_max": {
+        "name": "Maximale Lüfterstufe"
+      },
+      "service_reminder_months": {
+        "name": "Wartungsintervall"
+      },
+      "co2_setpoint": {
+        "name": "CO2-Sollwert"
+      },
+      "basic_humidity_level": {
+        "name": "Feuchtigkeitsschwellwert"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Lüftung"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Vallox RS485 Verbindung fehlgeschlagen",
+      "description": "Verbindung zum seriellen Port `{serial_port}` fehlgeschlagen. Bitte prüfen Sie:\n\n1. Der USB-RS485-Adapter ist angeschlossen\n2. Der Adapter ist korrekt mit der Vallox-Anlage verbunden\n3. Der Pfad zum seriellen Port ist korrekt\n\nDie Integration wird automatisch wiederhergestellt, sobald die Verbindung wiederhergestellt ist."
+    },
+    "communication_timeout": {
+      "title": "Vallox RS485 Kommunikations-Timeout",
+      "description": "Kommunikation mit der Vallox-Anlage auf `{serial_port}` hat das Zeitlimit überschritten. Bitte prüfen Sie:\n\n1. Die RS485-Verkabelung ist korrekt (A/B-Verbindungen)\n2. Die Vallox-Anlage ist eingeschaltet\n3. Keine anderen Geräte verursachen Buskonflikte\n\nDie Integration wird automatisch wiederhergestellt, sobald die Kommunikation wiederhergestellt ist."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serielle Kommunikationsfehler: {error}"
+    },
+    "timeout_error": {
+      "message": "Kommunikations-Zeitüberschreitung: {error}"
+    },
+    "write_failed": {
+      "message": "Schreiben in Register {register} fehlgeschlagen: {error}"
+    }
+  }
+}

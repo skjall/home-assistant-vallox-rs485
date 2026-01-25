@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/skjall/homeassistant-vallox-rs485#readme
+    about: Read the documentation before opening an issue
+  - name: Home Assistant Community
+    url: https://community.home-assistant.io/
+    about: Ask questions about Home Assistant in general
+  - name: FHEM Vallox Wiki
+    url: https://wiki.fhem.de/wiki/Vallox
+    about: Reference documentation for the RS485 protocol

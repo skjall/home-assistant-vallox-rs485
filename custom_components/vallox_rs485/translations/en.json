@@ -1,0 +1,201 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "Name",
+          "scan_interval": "Scan interval (seconds)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Name",
+          "scan_interval": "Scan interval (seconds)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Vallox RS485",
+        "description": "Change settings for your Vallox ventilation system.\n\nSerial port: `{serial_port}`",
+        "data": {
+          "scan_interval": "Scan interval (seconds)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to serial port",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "no_serial_ports": "No serial ports found",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "Reconfiguration failed",
+      "reconfigure_successful": "Reconfiguration successful"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Outside temperature"
+      },
+      "temp_exhaust": {
+        "name": "Exhaust temperature"
+      },
+      "temp_inside": {
+        "name": "Inside temperature"
+      },
+      "temp_incoming": {
+        "name": "Incoming temperature"
+      },
+      "humidity": {
+        "name": "Humidity"
+      },
+      "humidity_sensor1": {
+        "name": "Humidity sensor 1"
+      },
+      "humidity_sensor2": {
+        "name": "Humidity sensor 2"
+      },
+      "fan_speed": {
+        "name": "Fan speed"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Heat recovery efficiency"
+      },
+      "last_fault": {
+        "name": "Last fault"
+      },
+      "fireplace_countdown": {
+        "name": "Fireplace countdown"
+      },
+      "post_heating_on_counter": {
+        "name": "Post-heating counter"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Supply fan"
+      },
+      "exhaust_fan": {
+        "name": "Exhaust fan"
+      },
+      "pre_heating": {
+        "name": "Pre-heating"
+      },
+      "fireplace_booster": {
+        "name": "Fireplace booster"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Fault"
+      },
+      "filter_guard": {
+        "name": "Filter guard"
+      },
+      "service_reminder": {
+        "name": "Service reminder"
+      },
+      "heating_indicator": {
+        "name": "Heating active"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Power"
+      },
+      "heating_state": {
+        "name": "Heating"
+      },
+      "co2_adjust": {
+        "name": "CO2 adjustment"
+      },
+      "rh_adjust": {
+        "name": "Humidity adjustment"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Heating setpoint"
+      },
+      "preheating_setpoint": {
+        "name": "Pre-heating setpoint"
+      },
+      "bypass_setpoint": {
+        "name": "Bypass setpoint"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Frost protection threshold"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Cell defrost setpoint"
+      },
+      "fan_speed_min": {
+        "name": "Minimum fan speed"
+      },
+      "fan_speed_max": {
+        "name": "Maximum fan speed"
+      },
+      "service_reminder_months": {
+        "name": "Service reminder interval"
+      },
+      "co2_setpoint": {
+        "name": "CO2 setpoint"
+      },
+      "basic_humidity_level": {
+        "name": "Humidity threshold"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Ventilation"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Vallox RS485 connection failed",
+      "description": "Failed to connect to serial port `{serial_port}`. Please check:\n\n1. The USB-RS485 adapter is connected\n2. The adapter is properly wired to the Vallox unit\n3. The serial port path is correct\n\nThe integration will automatically recover once the connection is restored."
+    },
+    "communication_timeout": {
+      "title": "Vallox RS485 communication timeout",
+      "description": "Communication with the Vallox unit on `{serial_port}` timed out. Please check:\n\n1. The RS485 wiring is correct (A/B connections)\n2. The Vallox unit is powered on\n3. No other devices are causing bus conflicts\n\nThe integration will automatically recover once communication is restored."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}

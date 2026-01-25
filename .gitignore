@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Deployment (contains server-specific config)
+deploy.sh
+deploy.conf
+
+# Markdown files (except project documentation)
+*.md
+!README.md
+!CONTRIBUTING.md
+!docs/*.md
+!.github/**/*.md

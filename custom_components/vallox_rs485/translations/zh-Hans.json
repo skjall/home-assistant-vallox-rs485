@@ -1,0 +1,201 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "设置 Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "名称",
+          "scan_interval": "扫描间隔（秒）",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "名称",
+          "scan_interval": "扫描间隔（秒）",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "重新配置 Vallox RS485",
+        "description": "更改 Vallox 通风系统的设置。\n\n串口: `{serial_port}`",
+        "data": {
+          "scan_interval": "扫描间隔（秒）",
+          "device_address": "总线地址"
+        },
+        "data_description": {
+          "scan_interval": "轮询通风设备的频率（10-300秒）。",
+          "device_address": "RS485 总线地址。仅在地址冲突时更改。"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "无法连接到串口",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "设备已配置",
+      "no_serial_ports": "未找到串口",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "重新配置失败",
+      "reconfigure_successful": "重新配置成功"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "室外温度"
+      },
+      "temp_exhaust": {
+        "name": "排风温度"
+      },
+      "temp_inside": {
+        "name": "室内温度"
+      },
+      "temp_incoming": {
+        "name": "送风温度"
+      },
+      "humidity": {
+        "name": "湿度"
+      },
+      "humidity_sensor1": {
+        "name": "湿度传感器 1"
+      },
+      "humidity_sensor2": {
+        "name": "湿度传感器 2"
+      },
+      "fan_speed": {
+        "name": "风扇转速"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "热回收效率"
+      },
+      "last_fault": {
+        "name": "最后故障"
+      },
+      "fireplace_countdown": {
+        "name": "壁炉倒计时"
+      },
+      "post_heating_on_counter": {
+        "name": "后加热计数器"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "送风风扇"
+      },
+      "exhaust_fan": {
+        "name": "排风风扇"
+      },
+      "pre_heating": {
+        "name": "预加热"
+      },
+      "fireplace_booster": {
+        "name": "壁炉模式"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "故障"
+      },
+      "filter_guard": {
+        "name": "滤网指示"
+      },
+      "service_reminder": {
+        "name": "维护提醒"
+      },
+      "heating_indicator": {
+        "name": "加热中"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "电源"
+      },
+      "heating_state": {
+        "name": "加热"
+      },
+      "co2_adjust": {
+        "name": "CO2调节"
+      },
+      "rh_adjust": {
+        "name": "湿度调节"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "加热设定点"
+      },
+      "preheating_setpoint": {
+        "name": "预加热设定点"
+      },
+      "bypass_setpoint": {
+        "name": "旁通设定点"
+      },
+      "input_fan_stop_threshold": {
+        "name": "防冻保护阈值"
+      },
+      "cell_defrost_setpoint": {
+        "name": "除霜设定点"
+      },
+      "fan_speed_min": {
+        "name": "最低风速"
+      },
+      "fan_speed_max": {
+        "name": "最高风速"
+      },
+      "service_reminder_months": {
+        "name": "维护提醒间隔"
+      },
+      "co2_setpoint": {
+        "name": "CO2设定点"
+      },
+      "basic_humidity_level": {
+        "name": "湿度阈值"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "通风"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Vallox RS485 连接失败",
+      "description": "无法连接到串口 `{serial_port}`。请检查：\n\n1. USB-RS485 适配器已连接\n2. 适配器已正确连接到 Vallox 设备\n3. 串口路径正确\n\n连接恢复后，集成将自动恢复。"
+    },
+    "communication_timeout": {
+      "title": "Vallox RS485 通信超时",
+      "description": "与 `{serial_port}` 上的 Vallox 设备通信超时。请检查：\n\n1. RS485 接线正确（A/B 连接）\n2. Vallox 设备已开机\n3. 总线上没有其他设备冲突\n\n通信恢复后，集成将自动恢复。"
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Nastavit Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "Název",
+          "scan_interval": "Interval skenování (sekundy)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Název",
+          "scan_interval": "Interval skenování (sekundy)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "Překonfigurovat Vallox RS485",
+        "description": "Změňte nastavení systému ventilace Vallox.\n\nSériový port: `{serial_port}`",
+        "data": {
+          "scan_interval": "Interval skenování (sekundy)",
+          "device_address": "Adresa sběrnice"
+        },
+        "data_description": {
+          "scan_interval": "Jak často dotazovat jednotku ventilace (10-300 sekund).",
+          "device_address": "RS485 adresa sběrnice. Měňte pouze v případě konfliktu adres."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Připojení k sériovému portu selhalo",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "Zařízení je již nakonfigurováno",
+      "no_serial_ports": "Nebyly nalezeny žádné sériové porty",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "Rekonfigurace se nezdařila",
+      "reconfigure_successful": "Rekonfigurace byla úspěšná"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Venkovní teplota"
+      },
+      "temp_exhaust": {
+        "name": "Teplota odváděného vzduchu"
+      },
+      "temp_inside": {
+        "name": "Vnitřní teplota"
+      },
+      "temp_incoming": {
+        "name": "Teplota přiváděného vzduchu"
+      },
+      "humidity": {
+        "name": "Vlhkost"
+      },
+      "humidity_sensor1": {
+        "name": "Čidlo vlhkosti 1"
+      },
+      "humidity_sensor2": {
+        "name": "Čidlo vlhkosti 2"
+      },
+      "fan_speed": {
+        "name": "Rychlost ventilátoru"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Účinnost rekuperace"
+      },
+      "last_fault": {
+        "name": "Poslední chyba"
+      },
+      "fireplace_countdown": {
+        "name": "Odpočet krbu"
+      },
+      "post_heating_on_counter": {
+        "name": "Počítadlo dohřevu"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Přívodní ventilátor"
+      },
+      "exhaust_fan": {
+        "name": "Odtahový ventilátor"
+      },
+      "pre_heating": {
+        "name": "Předehřev"
+      },
+      "fireplace_booster": {
+        "name": "Krbový režim"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Porucha"
+      },
+      "filter_guard": {
+        "name": "Indikátor filtru"
+      },
+      "service_reminder": {
+        "name": "Připomínka servisu"
+      },
+      "heating_indicator": {
+        "name": "Topení aktivní"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Napájení"
+      },
+      "heating_state": {
+        "name": "Topení"
+      },
+      "co2_adjust": {
+        "name": "Regulace CO2"
+      },
+      "rh_adjust": {
+        "name": "Regulace vlhkosti"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Nastavení teploty"
+      },
+      "preheating_setpoint": {
+        "name": "Nastavení předehřevu"
+      },
+      "bypass_setpoint": {
+        "name": "Nastavení bypassu"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Práh ochrany proti mrazu"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Nastavení odmrazování"
+      },
+      "fan_speed_min": {
+        "name": "Minimální otáčky ventilátoru"
+      },
+      "fan_speed_max": {
+        "name": "Maximální otáčky ventilátoru"
+      },
+      "service_reminder_months": {
+        "name": "Interval připomínky servisu"
+      },
+      "co2_setpoint": {
+        "name": "Nastavení CO2"
+      },
+      "basic_humidity_level": {
+        "name": "Práh vlhkosti"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Ventilace"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Připojení Vallox RS485 selhalo",
+      "description": "Nepodařilo se připojit k sériovému portu `{serial_port}`. Zkontrolujte:\n\n1. USB-RS485 adaptér je připojen\n2. Adaptér je správně připojen k jednotce Vallox\n3. Cesta k sériovému portu je správná\n\nIntegrace se automaticky obnoví po obnovení připojení."
+    },
+    "communication_timeout": {
+      "title": "Časový limit komunikace Vallox RS485",
+      "description": "Komunikace s jednotkou Vallox na `{serial_port}` vypršela. Zkontrolujte:\n\n1. Kabeláž RS485 je správná (připojení A/B)\n2. Jednotka Vallox je zapnutá\n3. Žádná jiná zařízení nezpůsobují konflikty na sběrnici\n\nIntegrace se automaticky obnoví po obnovení komunikace."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}

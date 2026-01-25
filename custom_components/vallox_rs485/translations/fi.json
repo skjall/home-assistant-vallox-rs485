@@ -1,0 +1,201 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Määritä Vallox RS485",
+        "description": "Configure connection to your Vallox ventilation system.",
+        "data": {
+          "serial_port": "RS485 adapter",
+          "name": "Nimi",
+          "scan_interval": "Päivitysväli (sekuntia)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "serial_port": "Select the USB-RS485 adapter connected to your Vallox unit.",
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "usb_confirm": {
+        "title": "Vallox ventilation discovered",
+        "description": "A Vallox ventilation system was detected on **{adapter}**.\n\nPort: `{port}`",
+        "data": {
+          "name": "Nimi",
+          "scan_interval": "Päivitysväli (sekuntia)",
+          "device_address": "Bus address"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the ventilation unit for updates (10-300 seconds).",
+          "device_address": "RS485 bus address for this integration. Only change if you have address conflicts."
+        }
+      },
+      "reconfigure": {
+        "title": "Määritä Vallox RS485 uudelleen",
+        "description": "Muuta Vallox-ilmanvaihtojärjestelmän asetuksia.\n\nSarjaportti: `{serial_port}`",
+        "data": {
+          "scan_interval": "Päivitysväli (sekuntia)",
+          "device_address": "Väyläosoite"
+        },
+        "data_description": {
+          "scan_interval": "Kuinka usein ilmanvaihtoyksikköä kysellään (10-300 sekuntia).",
+          "device_address": "RS485-väyläosoite. Vaihda vain osoiteristiriitojen sattuessa."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Sarjaporttiin yhdistäminen epäonnistui",
+      "no_vallox_traffic": "No Vallox traffic detected on this port"
+    },
+    "abort": {
+      "already_configured": "Laite on jo määritetty",
+      "no_serial_ports": "Sarjaportteja ei löytynyt",
+      "no_vallox_traffic": "No Vallox traffic detected on this port",
+      "reconfigure_failed": "Uudelleenmääritys epäonnistui",
+      "reconfigure_successful": "Uudelleenmääritys onnistui"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temp_outside": {
+        "name": "Ulkolämpötila"
+      },
+      "temp_exhaust": {
+        "name": "Poistolämpötila"
+      },
+      "temp_inside": {
+        "name": "Sisälämpötila"
+      },
+      "temp_incoming": {
+        "name": "Tulolämpötila"
+      },
+      "humidity": {
+        "name": "Ilmankosteus"
+      },
+      "humidity_sensor1": {
+        "name": "Kosteusanturi 1"
+      },
+      "humidity_sensor2": {
+        "name": "Kosteusanturi 2"
+      },
+      "fan_speed": {
+        "name": "Puhallinnopeus"
+      },
+      "co2_ppm": {
+        "name": "CO2"
+      },
+      "heat_recovery_efficiency": {
+        "name": "Lämmön talteenoton hyötysuhde"
+      },
+      "last_fault": {
+        "name": "Viimeisin virhe"
+      },
+      "fireplace_countdown": {
+        "name": "Takkatoiminnon laskuri"
+      },
+      "post_heating_on_counter": {
+        "name": "Jälkilämmityksen laskuri"
+      }
+    },
+    "binary_sensor": {
+      "supply_fan": {
+        "name": "Tuloilmapuhallin"
+      },
+      "exhaust_fan": {
+        "name": "Poistoilmapuhallin"
+      },
+      "pre_heating": {
+        "name": "Esilämmitys"
+      },
+      "fireplace_booster": {
+        "name": "Takkatehostus"
+      },
+      "damper_motor_position": {
+        "name": "Bypass"
+      },
+      "fault_signal": {
+        "name": "Vika"
+      },
+      "filter_guard": {
+        "name": "Suodatinvahti"
+      },
+      "service_reminder": {
+        "name": "Huoltomuistutus"
+      },
+      "heating_indicator": {
+        "name": "Lämmitys aktiivinen"
+      }
+    },
+    "switch": {
+      "power_state": {
+        "name": "Virta"
+      },
+      "heating_state": {
+        "name": "Lämmitys"
+      },
+      "co2_adjust": {
+        "name": "CO2-säätö"
+      },
+      "rh_adjust": {
+        "name": "Kosteussäätö"
+      }
+    },
+    "number": {
+      "heating_setpoint": {
+        "name": "Lämmityksen asetusarvo"
+      },
+      "preheating_setpoint": {
+        "name": "Esilämmityksen asetusarvo"
+      },
+      "bypass_setpoint": {
+        "name": "Ohituksen asetusarvo"
+      },
+      "input_fan_stop_threshold": {
+        "name": "Pakkassuojan raja"
+      },
+      "cell_defrost_setpoint": {
+        "name": "Kennon sulatuksen asetusarvo"
+      },
+      "fan_speed_min": {
+        "name": "Puhaltimen miniminopeus"
+      },
+      "fan_speed_max": {
+        "name": "Puhaltimen maksiminopeus"
+      },
+      "service_reminder_months": {
+        "name": "Huoltomuistutuksen väli"
+      },
+      "co2_setpoint": {
+        "name": "CO2-asetusarvo"
+      },
+      "basic_humidity_level": {
+        "name": "Kosteusraja"
+      }
+    },
+    "fan": {
+      "ventilation": {
+        "name": "Ilmanvaihto"
+      }
+    }
+  },
+  "issues": {
+    "serial_connection_failed": {
+      "title": "Vallox RS485 yhteys epäonnistui",
+      "description": "Yhteyden muodostaminen sarjaporttiin `{serial_port}` epäonnistui. Tarkista:\n\n1. USB-RS485-sovitin on kytketty\n2. Sovitin on kytketty oikein Vallox-yksikköön\n3. Sarjaportin polku on oikein\n\nIntegraatio palautuu automaattisesti yhteyden palautuessa."
+    },
+    "communication_timeout": {
+      "title": "Vallox RS485 viestintä aikakatkaisu",
+      "description": "Viestintä Vallox-yksikön kanssa portissa `{serial_port}` aikakatkaistu. Tarkista:\n\n1. RS485-johdotus on oikein (A/B-liitännät)\n2. Vallox-yksikkö on päällä\n3. Muut laitteet eivät aiheuta ristiriitoja väylällä\n\nIntegraatio palautuu automaattisesti viestinnän palautuessa."
+    }
+  },
+  "exceptions": {
+    "serial_error": {
+      "message": "Serial communication error: {error}"
+    },
+    "timeout_error": {
+      "message": "Communication timeout: {error}"
+    },
+    "write_failed": {
+      "message": "Failed to write to register {register}: {error}"
+    }
+  }
+}
