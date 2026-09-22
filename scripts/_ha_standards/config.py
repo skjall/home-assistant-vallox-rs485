@@ -12,6 +12,7 @@ one place, pyproject.toml, next to the rest of its tooling:
     overall_coverage = 95
     derived_translation_keys = ["binary_sensor:valve_open"]
     unenforceable = ["discovery"]
+    brand_color = "#0A7EE8"
 
     [tool.ha_standards.coverage]
     "config_flow.py" = 100
@@ -74,6 +75,13 @@ README_SECTIONS = {
 DEFAULT_COVERAGE = {"config_flow.py": 100.0}
 DEFAULT_OVERALL = 95.0
 
+# The house colour every brand icon is built on. It is what makes a set of
+# integrations read as coming from one author, which is the whole reason the
+# gate looks at pixels at all. A project that wants a different ground says so
+# in pyproject.toml; an empty string turns the colour check off and leaves the
+# size and shape checks standing.
+DEFAULT_BRAND_COLOR = "#0A7EE8"
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -85,6 +93,7 @@ class Settings:
     derived_translation_keys: dict[str, set[str]] = field(default_factory=dict)
     unenforceable: frozenset[str] = frozenset()
     coverage_report: str = ".artefakte/coverage.json"
+    brand_color: str = DEFAULT_BRAND_COLOR
 
     def section_for(self, rule: str) -> str | None:
         """Return the README heading a documentation rule needs."""
@@ -121,4 +130,5 @@ def load(root: Path) -> Settings:
         derived_translation_keys=derived,
         unenforceable=frozenset(raw.get("unenforceable") or ()),
         coverage_report=str(raw.get("coverage_report", ".artefakte/coverage.json")),
+        brand_color=str(raw.get("brand_color", DEFAULT_BRAND_COLOR)),
     )
