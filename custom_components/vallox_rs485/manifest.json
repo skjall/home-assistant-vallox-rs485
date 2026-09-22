@@ -20,7 +20,7 @@
   "requirements": [
     "pyserial>=3.5",
     "pyserial-asyncio-fast>=0.14",
-    "vallox-rs485-protocol==0.2.0"
+    "vallox-rs485-protocol==0.3.0"
   ],
   "usb": [
     {
@@ -40,5 +40,5 @@
       "pid": "2303"
     }
   ],
-  "version": "0.2.0"
+  "version": "0.3.0"
 }
