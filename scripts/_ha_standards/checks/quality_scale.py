@@ -21,6 +21,7 @@ from pathlib import Path
 
 from .. import config
 from ..discovery import Integration, NoIntegrationError, find_integration
+from . import brand_image
 
 
 class Report:
@@ -91,11 +92,73 @@ def entity_basics(it: Integration, _: config.Settings, report: Report) -> None:
         report.fail("entity-unique-id", "the base entity does not set _attr_unique_id")
 
 
-def brands(it: Integration, _: config.Settings, report: Report) -> None:
-    """Require a brand icon, and a hacs.json that supports a local one."""
-    if not (it.path / "brand" / "icon.png").exists():
-        report.fail("brands", "brand/icon.png is missing")
+# What a brand folder carries, and how big each one has to be. The names are
+# the ones the frontend looks for; the sizes are the ones home-assistant/brands
+# specifies, and there is no reason for a locally shipped icon to differ.
+BRAND_REQUIRED = {"icon.png": 256, "icon@2x.png": 512}
+BRAND_OPTIONAL = {"dark_icon.png": 256, "dark_icon@2x.png": 512}
+
+
+def _brand_ground(
+    name: str, image: brand_image.Png, wanted: tuple[int, int, int], report: Report
+) -> None:
+    """Hold one image to the flat house-coloured ground."""
+    if not image.readable:
+        # Adam7 and 16-bit samples are deliberately not decoded here. Failing
+        # is the honest outcome: the alternative is a rule that silently stops
+        # being checked for exactly the files that differ from the build.
+        report.fail(
+            "brands",
+            f"brand/{name} is interlaced or 16-bit, so its ground colour "
+            "cannot be read - write it as an 8-bit, non-interlaced PNG",
+        )
         return
+    corners = image.corners()
+    if len(corners) > 1:
+        found = ", ".join(sorted(brand_image.to_hex(c) for c in corners))
+        report.fail(
+            "brands",
+            f"brand/{name} has corners in {found} - the ground is meant to be "
+            "one flat colour, edge to edge",
+        )
+        return
+    if corners != {wanted}:
+        found = brand_image.to_hex(next(iter(corners)))
+        report.fail(
+            "brands",
+            f"brand/{name} sits on {found}, not the house colour "
+            f"{brand_image.to_hex(wanted)}",
+        )
+
+
+def brands(it: Integration, settings: config.Settings, report: Report) -> None:
+    """Require brand images in the house style, and a hacs.json that serves them."""
+    folder = it.path / "brand"
+    for name in BRAND_REQUIRED:
+        if not (folder / name).exists():
+            report.fail("brands", f"brand/{name} is missing")
+
+    wanted = brand_image.parse_hex(settings.brand_color)
+    if settings.brand_color and wanted is None:
+        report.fail("brands", f"brand_color {settings.brand_color!r} is not '#RRGGBB'")
+
+    for name, size in (BRAND_REQUIRED | BRAND_OPTIONAL).items():
+        path = folder / name
+        if not path.exists():
+            continue
+        try:
+            image = brand_image.read(path)
+        except brand_image.NotAPng as err:
+            report.fail("brands", f"brand/{name}: {err}")
+            continue
+        if (image.width, image.height) != (size, size):
+            report.fail(
+                "brands",
+                f"brand/{name} is {image.width}x{image.height}, not {size}x{size}",
+            )
+        if wanted is not None:
+            _brand_ground(name, image, wanted, report)
+
     hacs = it.root / "hacs.json"
     if not hacs.exists():
         return
