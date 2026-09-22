@@ -1,4 +1,4 @@
-# Vendored from ha-integration-standards 0.3.0. Do not edit:
+# Vendored from ha-integration-standards 0.3.1. Do not edit:
 # `ha-standards sync` rewrites this file, and `run.py verify` fails the
 # commit when it has been changed by hand.
 
