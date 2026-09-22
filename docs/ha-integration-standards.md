@@ -215,11 +215,11 @@ with the base before it merges. Run it after adopting this package, and again
 whenever a job is added or renamed.
 
 **A new repository is unprotected until this runs.** Nothing else sets the
-protection up, and nothing complains while it is missing: `main` accepts a
-direct push, a force-push, a deletion. So `ha-standards protect` belongs to
-creating the repository, straight after the first push of `main`, as much as
-`git init` does. The same run also sets up what every integration here needs
-around the checks:
+protection up, and the repository gives no sign of it: `main` accepts a direct
+push, a force-push, a deletion. So `ha-standards protect` belongs to creating
+the repository, straight after the first push of `main`, as much as `git init`
+does. The same run also sets up what every integration here needs around the
+checks:
 
 - the **ruleset** itself on the default branch: pull requests only, no
   force-push, no deletion, and the checks above. No approval is required and
@@ -231,6 +231,19 @@ around the checks:
 
 For a package under `lib/` it also asks PyPI whether the package is
 published, and prints what pypi.org still needs if it is not - see *Release*.
+
+`ha-standards check` asks GitHub the same questions read-only, so a setting
+that was never made or has drifted since is reported rather than waited for:
+
+```bash
+ha-standards check              # managed files and repository settings
+```
+
+It names a branch no ruleset covers, a check the ruleset requires that no
+workflow reports any more, a job that runs without anything requiring it, and
+a leftover branch protection duplicating the ruleset. Where GitHub cannot be
+asked - no `gh`, no credentials, a pull request from a fork - it says so and
+passes, because a contributor who cannot see a setting cannot have broken it.
 
 Each step reads what is there and writes what is wanted, so running it again
 is always safe.
