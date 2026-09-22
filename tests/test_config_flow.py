@@ -1,9 +1,8 @@
 """Tests for Vallox RS485 config flow helper functions."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
-
-import pytest
 
 from custom_components.vallox_rs485.const import DOMAIN
 
@@ -43,8 +42,9 @@ class TestConfigFlowHelpers:
 
     def test_validate_vallox_bus_success(self) -> None:
         """Test validate_vallox_bus with valid Vallox traffic."""
+        from vallox_rs485_protocol import ValloxTelegram
+
         from custom_components.vallox_rs485.config_flow import validate_vallox_bus
-        from custom_components.vallox_rs485.vallox_protocol import ValloxTelegram
         from custom_components.vallox_rs485.const import ADDR_MAINBOARD
 
         telegram = ValloxTelegram(
@@ -57,7 +57,7 @@ class TestConfigFlowHelpers:
         valid_data = telegram.to_bytes()
 
         mock_serial = MagicMock()
-        # The function reads byte by byte with read(1), so we return each byte individually
+        # read(1) reads byte by byte, so hand it one byte at a time
         mock_serial.read.side_effect = [bytes([b]) for b in valid_data]
 
         with patch(
@@ -98,7 +98,7 @@ class TestConfigFlowHelpers:
             assert result is False
 
     def test_get_stable_device_path_same(self) -> None:
-        """Test get_stable_device_path returns same path when /dev/serial/by-id doesn't exist."""
+        """The path is handed back unchanged when /dev/serial/by-id is absent."""
         from custom_components.vallox_rs485.config_flow import get_stable_device_path
 
         with patch(
@@ -113,13 +113,10 @@ class TestConfigFlowHelpers:
 
     def test_get_stable_device_path_by_id(self) -> None:
         """Test get_stable_device_path finds by-id path."""
-        import os
         from custom_components.vallox_rs485.config_flow import get_stable_device_path
 
         with (
-            patch(
-                "custom_components.vallox_rs485.config_flow.Path"
-            ) as mock_path_class,
+            patch("custom_components.vallox_rs485.config_flow.Path") as mock_path_class,
             patch("os.path.realpath") as mock_realpath,
         ):
             # Mock the by-id directory
@@ -128,7 +125,9 @@ class TestConfigFlowHelpers:
 
             # Mock a link entry that matches
             mock_link = MagicMock()
-            mock_link.__str__ = lambda self: "/dev/serial/by-id/usb-FTDI_FT232R-if00-port0"
+            mock_link.__str__ = lambda self: (
+                "/dev/serial/by-id/usb-FTDI_FT232R-if00-port0"
+            )
             mock_by_id_path.iterdir.return_value = [mock_link]
 
             mock_path_class.return_value = mock_by_id_path

@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "A porta série não está aberta, o comando não foi enviado."
+    },
+    "command_failed": {
+      "message": "Não foi possível escrever o comando na unidade de ventilação."
+    },
+    "select_unknown": {
+      "message": "Ainda não foi lido nenhum valor do dispositivo, por isso este interruptor não pode ser alterado. Aguarde a próxima atualização e tente novamente."
+    },
+    "no_bus_data": {
+      "message": "Ainda não chegaram dados da unidade de ventilação. Verifique a cablagem RS485 e o endereço do dispositivo."
     }
   }
 }

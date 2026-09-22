@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "Sarjaportti ei ole auki, komentoa ei lähetetty."
+    },
+    "command_failed": {
+      "message": "Komentoa ei voitu kirjoittaa ilmanvaihtokoneeseen."
+    },
+    "select_unknown": {
+      "message": "Laitteesta ei ole vielä luettu arvoa, joten tätä kytkintä ei voi muuttaa. Odota seuraavaa päivitystä ja yritä uudelleen."
+    },
+    "no_bus_data": {
+      "message": "Ilmanvaihtokoneesta ei ole vielä saapunut tietoja. Tarkista RS485-kaapelointi ja laiteosoite."
     }
   }
 }

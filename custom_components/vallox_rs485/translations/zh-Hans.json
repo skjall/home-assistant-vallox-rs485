@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "串口未打开，命令未发送。"
+    },
+    "command_failed": {
+      "message": "无法将命令写入通风设备。"
+    },
+    "select_unknown": {
+      "message": "尚未从设备读取到任何数值，因此无法更改此开关。请等待下次总线更新后重试。"
+    },
+    "no_bus_data": {
+      "message": "尚未收到通风设备的数据。请检查 RS485 接线和设备地址。"
     }
   }
 }

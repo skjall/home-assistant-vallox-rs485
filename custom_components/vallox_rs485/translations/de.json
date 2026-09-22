@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Schreiben in Register {register} fehlgeschlagen: {error}"
+    },
+    "not_connected": {
+      "message": "Die serielle Schnittstelle ist nicht geöffnet, der Befehl wurde nicht gesendet."
+    },
+    "command_failed": {
+      "message": "Der Befehl konnte nicht an das Lüftungsgerät geschrieben werden."
+    },
+    "select_unknown": {
+      "message": "Vom Gerät wurde noch kein Wert gelesen, daher lässt sich dieser Schalter nicht ändern. Warte auf die nächste Aktualisierung und versuche es erneut."
+    },
+    "no_bus_data": {
+      "message": "Vom Lüftungsgerät sind noch keine Daten eingetroffen. Prüfe die RS485-Verkabelung und die Geräteadresse."
     }
   }
 }

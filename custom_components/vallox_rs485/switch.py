@@ -1,19 +1,24 @@
 """Switch entities for Vallox RS485."""
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from vallox_rs485_protocol import ValloxState
 
 from . import ValloxConfigEntry
-from .const import DOMAIN, REQ_SELECT, get_device_info
+from .const import REQ_SELECT
 from .coordinator import ValloxCoordinator
-from .vallox_protocol import ValloxState
+from .entity import ValloxDescribedEntity
+
+# The coordinator owns the bus; entities never reach it in parallel.
+PARALLEL_UPDATES = 1
 
 
 @dataclass(frozen=True)
@@ -30,7 +35,6 @@ SWITCH_DESCRIPTIONS: tuple[ValloxSwitchEntityDescription, ...] = (
     ValloxSwitchEntityDescription(
         key="power_state",
         translation_key="power_state",
-        icon="mdi:power",
         value_fn=lambda state: state.power_state,
         turn_on_fn="async_set_power_state",
         turn_off_fn="async_set_power_state",
@@ -39,7 +43,6 @@ SWITCH_DESCRIPTIONS: tuple[ValloxSwitchEntityDescription, ...] = (
     ValloxSwitchEntityDescription(
         key="heating_state",
         translation_key="heating_state",
-        icon="mdi:radiator",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.heating_state,
         turn_on_fn="async_set_heating_state",
@@ -49,7 +52,6 @@ SWITCH_DESCRIPTIONS: tuple[ValloxSwitchEntityDescription, ...] = (
     ValloxSwitchEntityDescription(
         key="co2_adjust",
         translation_key="co2_adjust",
-        icon="mdi:molecule-co2",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.co2_adjust,
         turn_on_fn="async_set_co2_adjust",
@@ -59,7 +61,6 @@ SWITCH_DESCRIPTIONS: tuple[ValloxSwitchEntityDescription, ...] = (
     ValloxSwitchEntityDescription(
         key="rh_adjust",
         translation_key="rh_adjust",
-        icon="mdi:water-percent",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.rh_adjust,
         turn_on_fn="async_set_rh_adjust",
@@ -79,19 +80,18 @@ async def async_setup_entry(
 
     entities = []
     for description in SWITCH_DESCRIPTIONS:
-        if description.required_registers is None:
-            entities.append(ValloxSwitch(coordinator, description, entry))
-        elif coordinator.has_seen_any_register(description.required_registers):
+        if description.required_registers is None or coordinator.has_seen_any_register(
+            description.required_registers
+        ):
             entities.append(ValloxSwitch(coordinator, description, entry))
 
     async_add_entities(entities)
 
 
-class ValloxSwitch(CoordinatorEntity[ValloxCoordinator], SwitchEntity):
+class ValloxSwitch(ValloxDescribedEntity, SwitchEntity):
     """Representation of a Vallox switch."""
 
     entity_description: ValloxSwitchEntityDescription
-    _attr_has_entity_name = True
     _attr_assumed_state = True  # Prevent HA from restoring state on startup
 
     def __init__(
@@ -101,10 +101,8 @@ class ValloxSwitch(CoordinatorEntity[ValloxCoordinator], SwitchEntity):
         entry: ValloxConfigEntry,
     ) -> None:
         """Initialize the switch."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, entry.entry_id, entry.title, description.key)
         self.entity_description = description
-        self._attr_unique_id = f"{entry.entry_id}_{description.key}"
-        self._attr_device_info = get_device_info(entry.entry_id, entry.title)
 
     @property
     def is_on(self) -> bool | None:
@@ -124,10 +122,3 @@ class ValloxSwitch(CoordinatorEntity[ValloxCoordinator], SwitchEntity):
         if method:
             await method(False)
         await self.coordinator.async_request_refresh()
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        if not super().available:
-            return False
-        return self.entity_description.value_fn(self.coordinator.data) is not None

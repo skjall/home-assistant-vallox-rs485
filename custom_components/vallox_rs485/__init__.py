@@ -1,4 +1,5 @@
 """Vallox RS485 integration for Home Assistant."""
+
 from __future__ import annotations
 
 import logging
@@ -6,6 +7,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .coordinator import ValloxCoordinator
 
@@ -40,8 +42,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ValloxConfigEntry) -> bo
 
     await coordinator.async_config_entry_first_refresh()
 
-    # Wait for initial bus data before creating entities
-    await coordinator.async_wait_for_initial_data(timeout=15.0)
+    # The unit sends when it sees fit. Setting up entities before a single
+    # register has arrived leaves the user with a device full of unknowns and
+    # no reason given; Home Assistant retries with backoff instead.
+    if not await coordinator.async_wait_for_initial_data(timeout=15.0):
+        await coordinator.async_shutdown()
+        raise ConfigEntryNotReady(translation_key="no_bus_data")
 
     entry.runtime_data = coordinator
 

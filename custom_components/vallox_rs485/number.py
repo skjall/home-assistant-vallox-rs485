@@ -1,8 +1,9 @@
 """Number entities for Vallox RS485."""
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from homeassistant.components.number import (
     NumberDeviceClass,
@@ -13,24 +14,26 @@ from homeassistant.components.number import (
 from homeassistant.const import EntityCategory, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from vallox_rs485_protocol import ValloxState
 
 from . import ValloxConfigEntry
 from .const import (
-    get_device_info,
-    REQ_HEATING_SETPOINT,
-    REQ_PREHEATING_SETPOINT,
     REQ_BYPASS_SETPOINT,
-    REQ_INPUT_FAN_STOP,
     REQ_CELL_DEFROST,
-    REQ_FAN_SPEED_MIN,
-    REQ_FAN_SPEED_MAX,
-    REQ_SERVICE_REMINDER,
     REQ_CO2_SETPOINT,
+    REQ_FAN_SPEED_MAX,
+    REQ_FAN_SPEED_MIN,
+    REQ_HEATING_SETPOINT,
     REQ_HUMIDITY_LEVEL,
+    REQ_INPUT_FAN_STOP,
+    REQ_PREHEATING_SETPOINT,
+    REQ_SERVICE_REMINDER,
 )
 from .coordinator import ValloxCoordinator
-from .vallox_protocol import ValloxState
+from .entity import ValloxDescribedEntity
+
+# The coordinator owns the bus; entities never reach it in parallel.
+PARALLEL_UPDATES = 1
 
 
 @dataclass(frozen=True)
@@ -52,7 +55,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=30,
         native_step=1,
         mode=NumberMode.SLIDER,
-        icon="mdi:thermometer",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.heating_setpoint,
         set_fn="async_set_heating_setpoint",
@@ -67,7 +69,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=15,
         native_step=1,
         mode=NumberMode.SLIDER,
-        icon="mdi:thermometer-low",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.preheating_setpoint,
         set_fn="async_set_preheating_setpoint",
@@ -82,7 +83,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=20,
         native_step=1,
         mode=NumberMode.SLIDER,
-        icon="mdi:thermometer-chevron-up",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.bypass_setpoint,
         set_fn="async_set_bypass_setpoint",
@@ -97,7 +97,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=15,
         native_step=1,
         mode=NumberMode.SLIDER,
-        icon="mdi:snowflake-alert",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.input_fan_stop_threshold,
         set_fn="async_set_input_fan_stop_threshold",
@@ -112,7 +111,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=10,
         native_step=1,
         mode=NumberMode.SLIDER,
-        icon="mdi:snowflake-thermometer",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.cell_defrost_setpoint,
         set_fn="async_set_cell_defrost_setpoint",
@@ -125,7 +123,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=8,
         native_step=1,
         mode=NumberMode.SLIDER,
-        icon="mdi:fan-chevron-down",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.fan_speed_min,
         set_fn="async_set_fan_speed_min",
@@ -138,7 +135,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=8,
         native_step=1,
         mode=NumberMode.SLIDER,
-        icon="mdi:fan-chevron-up",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.fan_speed_max,
         set_fn="async_set_fan_speed_max",
@@ -151,7 +147,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=15,
         native_step=1,
         mode=NumberMode.BOX,
-        icon="mdi:calendar-clock",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.service_reminder_months,
         set_fn="async_set_service_reminder_months",
@@ -165,7 +160,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=2000,
         native_step=50,
         mode=NumberMode.SLIDER,
-        icon="mdi:molecule-co2",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.co2_setpoint,
         set_fn="async_set_co2_setpoint",
@@ -179,7 +173,6 @@ NUMBER_DESCRIPTIONS: tuple[ValloxNumberEntityDescription, ...] = (
         native_max_value=100,
         native_step=5,
         mode=NumberMode.SLIDER,
-        icon="mdi:water-percent",
         entity_category=EntityCategory.CONFIG,
         value_fn=lambda state: state.basic_humidity_level,
         set_fn="async_set_basic_humidity_level",
@@ -198,19 +191,18 @@ async def async_setup_entry(
 
     entities = []
     for description in NUMBER_DESCRIPTIONS:
-        if description.required_registers is None:
-            entities.append(ValloxNumber(coordinator, description, entry))
-        elif coordinator.has_seen_any_register(description.required_registers):
+        if description.required_registers is None or coordinator.has_seen_any_register(
+            description.required_registers
+        ):
             entities.append(ValloxNumber(coordinator, description, entry))
 
     async_add_entities(entities)
 
 
-class ValloxNumber(CoordinatorEntity[ValloxCoordinator], NumberEntity):
+class ValloxNumber(ValloxDescribedEntity, NumberEntity):
     """Representation of a Vallox number entity."""
 
     entity_description: ValloxNumberEntityDescription
-    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -219,10 +211,8 @@ class ValloxNumber(CoordinatorEntity[ValloxCoordinator], NumberEntity):
         entry: ValloxConfigEntry,
     ) -> None:
         """Initialize the number entity."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, entry.entry_id, entry.title, description.key)
         self.entity_description = description
-        self._attr_unique_id = f"{entry.entry_id}_{description.key}"
-        self._attr_device_info = get_device_info(entry.entry_id, entry.title)
 
     @property
     def native_value(self) -> float | None:
@@ -236,10 +226,3 @@ class ValloxNumber(CoordinatorEntity[ValloxCoordinator], NumberEntity):
         if method:
             await method(int(value))
         await self.coordinator.async_request_refresh()
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        if not super().available:
-            return False
-        return self.entity_description.value_fn(self.coordinator.data) is not None

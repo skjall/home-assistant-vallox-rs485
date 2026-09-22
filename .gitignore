@@ -37,3 +37,6 @@ deploy.conf
 !CONTRIBUTING.md
 !docs/*.md
 !.github/**/*.md
+
+# Everything a gated run produces.
+.artefakte/

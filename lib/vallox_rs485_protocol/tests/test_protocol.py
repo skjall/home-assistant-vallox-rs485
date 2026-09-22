@@ -1,9 +1,10 @@
 """Tests for Vallox RS485 protocol implementation."""
+
 from __future__ import annotations
 
-import pytest
-
-from custom_components.vallox_rs485.vallox_protocol import (
+from vallox_rs485_protocol import (
+    CELSIUS_TO_NTC,
+    NTC_TO_CELSIUS,
     ValloxState,
     ValloxTelegram,
     celsius_to_ntc,
@@ -24,7 +25,6 @@ from custom_components.vallox_rs485.vallox_protocol import (
     validate_service_months,
     validate_temperature_setpoint,
 )
-from custom_components.vallox_rs485.const import NTC_TO_CELSIUS, CELSIUS_TO_NTC
 
 
 class TestNtcConversion:
@@ -253,8 +253,10 @@ class TestCreateRequests:
         telegram = create_read_request(0x29)
         assert telegram.domain == 0x01
         assert telegram.receiver == 0x11
-        assert telegram.register == 0x29
-        assert telegram.value == 0x00
+        # Per docs/PROTOCOL.md: VARIABLE is 0x00 and DATA carries the
+        # register being asked for.
+        assert telegram.register == 0x00
+        assert telegram.value == 0x29
 
     def test_create_write_request(self) -> None:
         """Test write request creation."""
@@ -294,5 +296,5 @@ class TestValloxState:
     def test_state_has_raw_values(self) -> None:
         """Test state has raw values dict."""
         state = ValloxState()
-        assert hasattr(state, '_raw_values')
+        assert hasattr(state, "_raw_values")
         assert isinstance(state._raw_values, dict)

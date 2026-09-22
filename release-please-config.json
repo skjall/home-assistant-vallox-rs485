@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "simple",
+  "packages": {
+    ".": {
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "custom_components/vallox_rs485/manifest.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "custom_components/vallox_rs485/manifest.json",
+          "jsonpath": "$.requirements[?(@.match && @.match(/^vallox-rs485-protocol==/))]"
+        },
+        {
+          "type": "generic",
+          "path": "lib/vallox_rs485_protocol/pyproject.toml"
+        }
+      ]
+    }
+  }
+}

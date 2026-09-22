@@ -1,19 +1,44 @@
 {
   "domain": "vallox_rs485",
   "name": "Vallox RS485",
-  "codeowners": ["@skjall"],
+  "codeowners": [
+    "@skjall"
+  ],
   "config_flow": true,
-  "dependencies": ["usb"],
-  "documentation": "https://github.com/skjall/homeassistant-vallox-rs485",
-  "homeassistant": "2025.2.0",
+  "dependencies": [
+    "usb"
+  ],
+  "documentation": "https://github.com/skjall/home-assistant-vallox-rs485",
+  "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/skjall/homeassistant-vallox-rs485/issues",
-  "requirements": ["pyserial>=3.5", "pyserial-asyncio-fast>=0.14"],
+  "issue_tracker": "https://github.com/skjall/home-assistant-vallox-rs485/issues",
+  "loggers": [
+    "serial",
+    "serial_asyncio_fast"
+  ],
+  "quality_scale": "custom",
+  "requirements": [
+    "pyserial>=3.5",
+    "pyserial-asyncio-fast>=0.14",
+    "vallox-rs485-protocol==0.2.0"
+  ],
   "usb": [
-    {"vid": "0403", "pid": "6001"},
-    {"vid": "1A86", "pid": "7523"},
-    {"vid": "10C4", "pid": "EA60"},
-    {"vid": "067B", "pid": "2303"}
+    {
+      "vid": "0403",
+      "pid": "6001"
+    },
+    {
+      "vid": "1A86",
+      "pid": "7523"
+    },
+    {
+      "vid": "10C4",
+      "pid": "EA60"
+    },
+    {
+      "vid": "067B",
+      "pid": "2303"
+    }
   ],
   "version": "0.2.0"
 }

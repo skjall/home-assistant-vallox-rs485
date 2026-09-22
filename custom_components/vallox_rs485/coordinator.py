@@ -1,96 +1,99 @@
 """Data update coordinator for Vallox RS485."""
+
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import time
 from datetime import timedelta
 
 import serial
 import serial.tools.list_ports
-import serial_asyncio
+import serial_asyncio_fast
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from vallox_rs485_protocol import (
+    TELEGRAM_LENGTH,
+    ValloxState,
+    ValloxTelegram,
+    celsius_to_ntc,
+    create_read_request,
+    create_write_request,
+    decode_cell_defrost,
+    decode_fan_speed,
+    decode_fault,
+    decode_humidity,
+    encode_cell_defrost,
+    encode_co2_setpoint,
+    encode_fan_speed,
+    encode_humidity,
+    ntc_to_celsius,
+    validate_co2_setpoint,
+    validate_fan_speed,
+    validate_humidity,
+    validate_service_months,
+    validate_temperature_setpoint,
+)
 
 from .const import (
-    DOMAIN,
+    ADDR_MAINBOARD,
+    BIT_CO2_ADJUST,
+    BIT_DAMPER_MOTOR,
+    BIT_EXHAUST_FAN,
+    BIT_FAULT_INDICATOR,
+    BIT_FAULT_SIGNAL,
+    BIT_FILTER_GUARD,
+    BIT_FIREPLACE_BOOST_ACTIVE,
+    BIT_FIREPLACE_BOOSTER,
+    BIT_HEATING_INDICATOR,
+    BIT_HEATING_STATE,
+    BIT_POWER_STATE,
+    BIT_PRE_HEATING,
+    BIT_REMOTE_CONTROL_WORKING,
+    BIT_RH_ADJUST,
+    BIT_SERVICE_REMINDER,
+    BIT_SUPPLY_FAN,
     DEFAULT_BAUDRATE,
     DEFAULT_SCAN_INTERVAL,
-    ADDR_MAINBOARD,
+    DOMAIN,
+    REG_BASIC_HUMIDITY_LEVEL,
+    REG_BYPASS_SETPOINT,
+    REG_CELL_DEFROST_SETPOINT,
+    REG_CO2_HIGH,
+    REG_CO2_LOW,
+    REG_CO2_SETPOINT_LOWER,
+    REG_CO2_SETPOINT_UPPER,
+    REG_DC_FAN_INPUT_ADJ,
+    REG_DC_FAN_OUTPUT_ADJ,
     REG_FAN_SPEED,
+    REG_FAN_SPEED_MAX,
+    REG_FAN_SPEED_MIN,
+    REG_FIREPLACE_COUNTDOWN,
+    REG_FLAGS_6,
+    REG_HEATING_SETPOINT,
     REG_HUMIDITY,
     REG_HUMIDITY_SENSOR1,
     REG_HUMIDITY_SENSOR2,
-    REG_CO2_HIGH,
-    REG_CO2_LOW,
-    REG_CO2_SETPOINT_UPPER,
-    REG_CO2_SETPOINT_LOWER,
-    REG_TEMP_OUTSIDE,
-    REG_TEMP_EXHAUST,
-    REG_TEMP_INSIDE,
-    REG_TEMP_INCOMING,
-    REG_TEMP_OUTSIDE_LEGACY,
-    REG_TEMP_INSIDE_LEGACY,
-    REG_TEMP_INCOMING_LEGACY,
-    REG_TEMP_EXHAUST_LEGACY,
-    REG_LAST_FAULT,
-    REG_SELECT,
-    REG_MULTI_PURPOSE_2,
-    REG_FAN_SPEED_MIN,
-    REG_FAN_SPEED_MAX,
-    REG_HEATING_SETPOINT,
-    REG_PREHEATING_SETPOINT,
-    REG_BYPASS_SETPOINT,
-    REG_SERVICE_REMINDER,
     REG_INPUT_FAN_STOP_THRESHOLD,
-    REG_BASIC_HUMIDITY_LEVEL,
-    REG_CELL_DEFROST_SETPOINT,
-    REG_DC_FAN_INPUT_ADJ,
-    REG_DC_FAN_OUTPUT_ADJ,
-    REG_POST_HEATING_ON_CNT,
+    REG_LAST_FAULT,
+    REG_MULTI_PURPOSE_2,
     REG_POST_HEATING_OFF_TIME,
+    REG_POST_HEATING_ON_CNT,
     REG_POST_HEATING_TARGET,
-    REG_FIREPLACE_COUNTDOWN,
-    REG_FLAGS_6,
-    BIT_POWER_STATE,
-    BIT_CO2_ADJUST,
-    BIT_RH_ADJUST,
-    BIT_HEATING_STATE,
-    BIT_FILTER_GUARD,
-    BIT_HEATING_INDICATOR,
-    BIT_FAULT_INDICATOR,
-    BIT_SERVICE_REMINDER,
-    BIT_DAMPER_MOTOR,
-    BIT_FAULT_SIGNAL,
-    BIT_SUPPLY_FAN,
-    BIT_PRE_HEATING,
-    BIT_EXHAUST_FAN,
-    BIT_FIREPLACE_BOOSTER,
-    BIT_REMOTE_CONTROL_WORKING,
-    BIT_FIREPLACE_BOOST_ACTIVE,
-)
-from .vallox_protocol import (
-    ValloxTelegram,
-    ValloxState,
-    ntc_to_celsius,
-    celsius_to_ntc,
-    decode_fan_speed,
-    decode_humidity,
-    decode_fault,
-    decode_cell_defrost,
-    encode_fan_speed,
-    encode_humidity,
-    encode_cell_defrost,
-    encode_co2_setpoint,
-    validate_fan_speed,
-    validate_temperature_setpoint,
-    validate_humidity,
-    validate_co2_setpoint,
-    validate_service_months,
-    create_read_request,
-    create_write_request,
-    TELEGRAM_LENGTH,
+    REG_PREHEATING_SETPOINT,
+    REG_SELECT,
+    REG_SERVICE_REMINDER,
+    REG_TEMP_EXHAUST,
+    REG_TEMP_EXHAUST_LEGACY,
+    REG_TEMP_INCOMING,
+    REG_TEMP_INCOMING_LEGACY,
+    REG_TEMP_INSIDE,
+    REG_TEMP_INSIDE_LEGACY,
+    REG_TEMP_OUTSIDE,
+    REG_TEMP_OUTSIDE_LEGACY,
 )
 
 POLL_REGISTERS: tuple[int, ...] = (
@@ -152,7 +155,11 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         self._serial_port = serial_port
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
+        # Guards the writer. Never taken around a call that writes again:
+        # asyncio.Lock is not reentrant.
         self._lock = asyncio.Lock()
+        # Guards read-modify-write on SELECT, which spans two awaits.
+        self._select_lock = asyncio.Lock()
         self._state = ValloxState()
         self._last_unavailable_log: float = 0
         self._device_address = device_address
@@ -171,7 +178,6 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
             await self._ensure_connected()
             await self._poll_missing_registers()
             self._clear_error_state()
-            return self._state
         except serial.SerialException as err:
             self._log_unavailable(f"Serial communication error: {err}")
             await self._close_serial()
@@ -186,6 +192,8 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
             await self._close_serial()
             self._handle_error("serial_connection_failed")
             raise UpdateFailed(f"OS error: {err}") from err
+        else:
+            return self._state
 
     def _handle_error(self, error_type: str) -> None:
         """Handle error and create repair issue if persistent."""
@@ -245,7 +253,7 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
     async def _open_serial(self) -> None:
         """Open async serial connection."""
         _LOGGER.debug("Opening serial port %s", self._serial_port)
-        self._reader, self._writer = await serial_asyncio.open_serial_connection(
+        self._reader, self._writer = await serial_asyncio_fast.open_serial_connection(
             url=self._serial_port,
             baudrate=DEFAULT_BAUDRATE,
             bytesize=serial.EIGHTBITS,
@@ -258,18 +266,14 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         """Close async serial connection."""
         if self._listener_task is not None:
             self._listener_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._listener_task
-            except asyncio.CancelledError:
-                pass
             self._listener_task = None
 
         if self._writer is not None:
             self._writer.close()
-            try:
+            with contextlib.suppress(Exception):
                 await self._writer.wait_closed()
-            except Exception:
-                pass
         self._reader = None
         self._writer = None
 
@@ -315,7 +319,10 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
             if telegram is not None:
                 _LOGGER.debug(
                     "RX: %s (sender=0x%02X reg=0x%02X val=0x%02X)",
-                    chunk.hex(' '), telegram.sender, telegram.register, telegram.value
+                    chunk.hex(" "),
+                    telegram.sender,
+                    telegram.register,
+                    telegram.value,
                 )
                 self._process_telegram(telegram)
                 buffer = buffer[TELEGRAM_LENGTH:]
@@ -330,9 +337,11 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         to_poll = []
 
         for register in POLL_REGISTERS:
-            if register not in self._seen_registers:
-                to_poll.append(register)
-            elif now - self._register_timestamps.get(register, 0) > self._max_register_age:
+            if (
+                register not in self._seen_registers
+                or now - self._register_timestamps.get(register, 0)
+                > self._max_register_age
+            ):
                 to_poll.append(register)
 
         if not to_poll:
@@ -355,17 +364,23 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         """Send a telegram to the bus."""
         await self._ensure_connected()
         if self._writer is None:
-            raise serial.SerialException("Serial port not open")
+            raise HomeAssistantError(translation_key="not_connected")
 
         data = telegram.to_bytes()
         _LOGGER.debug(
             "TX: %s (to=0x%02X reg=0x%02X val=0x%02X)",
-            data.hex(' '), telegram.receiver, telegram.register, telegram.value
+            data.hex(" "),
+            telegram.receiver,
+            telegram.register,
+            telegram.value,
         )
 
         async with self._lock:
-            self._writer.write(data)
-            await self._writer.drain()
+            try:
+                self._writer.write(data)
+                await self._writer.drain()
+            except (serial.SerialException, OSError) as err:
+                raise HomeAssistantError(translation_key="command_failed") from err
 
     def _process_telegram(self, telegram: ValloxTelegram) -> None:
         """Process a received telegram and update state."""
@@ -428,14 +443,18 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
             self._state.filter_guard = bool(value & (1 << BIT_FILTER_GUARD))
             self._state.heating_indicator = bool(value & (1 << BIT_HEATING_INDICATOR))
             self._state.fault_indicator = bool(value & (1 << BIT_FAULT_INDICATOR))
-            self._state.service_reminder_active = bool(value & (1 << BIT_SERVICE_REMINDER))
+            self._state.service_reminder_active = bool(
+                value & (1 << BIT_SERVICE_REMINDER)
+            )
         elif register == REG_MULTI_PURPOSE_2:
             self._state.damper_motor_position = bool(value & (1 << BIT_DAMPER_MOTOR))
             self._state.fault_signal = bool(value & (1 << BIT_FAULT_SIGNAL))
             self._state.supply_fan_on = bool(value & (1 << BIT_SUPPLY_FAN))
             self._state.pre_heating_on = bool(value & (1 << BIT_PRE_HEATING))
             self._state.exhaust_fan_on = bool(value & (1 << BIT_EXHAUST_FAN))
-            self._state.fireplace_booster_on = bool(value & (1 << BIT_FIREPLACE_BOOSTER))
+            self._state.fireplace_booster_on = bool(
+                value & (1 << BIT_FIREPLACE_BOOSTER)
+            )
         elif register == REG_HEATING_SETPOINT:
             self._state.heating_setpoint = ntc_to_celsius(value)
         elif register == REG_PREHEATING_SETPOINT:
@@ -461,14 +480,21 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         elif register == REG_DC_FAN_OUTPUT_ADJ:
             self._state.dc_fan_output_adjustment = value
         elif register == REG_FLAGS_6:
-            self._state.remote_control_working = bool(value & (1 << BIT_REMOTE_CONTROL_WORKING))
-            self._state.fireplace_boost_active = bool(value & (1 << BIT_FIREPLACE_BOOST_ACTIVE))
+            self._state.remote_control_working = bool(
+                value & (1 << BIT_REMOTE_CONTROL_WORKING)
+            )
+            self._state.fireplace_boost_active = bool(
+                value & (1 << BIT_FIREPLACE_BOOST_ACTIVE)
+            )
         else:
             if register not in self._unknown_registers_warned:
                 self._unknown_registers_warned.add(register)
                 _LOGGER.warning(
                     "Unknown register: %s (sender=0x%02X reg=0x%02X val=0x%02X)",
-                    telegram.to_bytes().hex(' '), telegram.sender, register, value
+                    telegram.to_bytes().hex(" "),
+                    telegram.sender,
+                    register,
+                    value,
                 )
 
     async def _send_command(self, register: int, value: int) -> None:
@@ -478,19 +504,18 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         await self._send_telegram(telegram)
 
     async def _set_select_bit(self, bit: int, state: bool) -> None:
-        """Set a single bit in the SELECT register."""
-        async with self._lock:
+        """Set a single bit in the SELECT register.
+
+        SELECT holds several independent switches, so a write has to start
+        from the value currently on the bus. Until one has been seen there is
+        nothing to modify, and writing a guess would silently flip whatever
+        else lives in that register.
+        """
+        async with self._select_lock:
             if REG_SELECT not in self._state._raw_values:
-                _LOGGER.warning(
-                    "Cannot modify SELECT register - current value unknown. "
-                    "Wait for bus data before sending commands."
-                )
-                return
+                raise HomeAssistantError(translation_key="select_unknown")
             current = self._state._raw_values[REG_SELECT]
-            if state:
-                new_value = current | (1 << bit)
-            else:
-                new_value = current & ~(1 << bit)
+            new_value = current | (1 << bit) if state else current & ~(1 << bit)
             await self._send_command(REG_SELECT, new_value)
 
     async def async_set_fan_speed(self, speed: int) -> None:
@@ -575,23 +600,27 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         """Check if any of the given registers have been seen."""
         return any(r in self._seen_registers for r in registers)
 
-    async def async_wait_for_initial_data(self, timeout: float = 10.0) -> None:
-        """Wait for initial data from the bus before entity setup."""
+    async def async_wait_for_initial_data(self, timeout: float = 10.0) -> bool:  # noqa: ASYNC109
+        """Wait for the first registers to arrive; report whether they did.
+
+        The unit talks when it wants to, so the first telegram can be seconds
+        away. Reporting the outcome rather than logging it lets setup fail
+        properly instead of creating entities that will never have a value.
+        """
         if self._seen_registers:
-            return
+            return True
 
         _LOGGER.debug("Waiting for initial bus data (timeout: %.1fs)", timeout)
         start = time.monotonic()
         while time.monotonic() - start < timeout:
             await self.async_request_refresh()
             if self._seen_registers:
-                _LOGGER.debug("Initial data received: %d registers", len(self._seen_registers))
-                return
+                _LOGGER.debug(
+                    "Initial data received: %d registers", len(self._seen_registers)
+                )
+                return True
             await asyncio.sleep(1.0)
-        _LOGGER.warning(
-            "Timeout waiting for initial data, proceeding with %d registers",
-            len(self._seen_registers)
-        )
+        return False
 
     async def async_shutdown(self) -> None:
         """Shutdown the coordinator."""

@@ -1,0 +1,93 @@
+# Managed by ha-integration-standards. Do not edit: `ha-standards sync`
+# rewrites this file.
+#
+# The gates are vendored under scripts/_ha_standards/, so this workflow needs
+# nothing but the repository itself - no token, no private index, and a pull
+# request from a fork runs exactly the same checks.
+name: Quality
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "LICENSE"
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  quality-scale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip install pyyaml
+      # Someone editing a gate to make their commit pass would edit it here
+      # too, so the hashes are checked before the gates run.
+      - run: python3 scripts/_ha_standards/run.py verify
+      # The tier is only worth something if the code still holds it.
+      - run: python3 scripts/_ha_standards/run.py quality-scale
+
+  types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Install dependencies
+        run: |
+          pip install mypy -r requirements-test.txt
+          python scripts/ha_test_requirements.py > /tmp/components.txt
+          pip install -r /tmp/components.txt
+      - run: mypy --strict --ignore-missing-imports custom_components
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml -r requirements-test.txt
+          # What the components need comes from the installed Home Assistant
+          # release, not from a hand-maintained pin.
+          python scripts/ha_test_requirements.py > /tmp/components.txt
+          pip install -r /tmp/components.txt
+      - name: Run pytest
+        run: |
+          mkdir -p .artefakte
+          pytest --cov-report="json:.artefakte/coverage.json"
+      - name: Enforce the coverage the claimed tier requires
+        run: python3 scripts/_ha_standards/run.py coverage
+
+  hassfest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hacs/action@main
+        with:
+          category: integration
+          ignore: brands

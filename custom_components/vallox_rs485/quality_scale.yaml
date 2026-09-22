@@ -1,0 +1,97 @@
+# Whatever is marked done here, the ha-quality-scale hook verifies on every
+# commit, as far as a machine can. If the code falls behind, the commit fails -
+# so the tier cannot be kept by claiming it, only by holding it.
+#
+# The device is an RS485 bus reached over a USB serial adapter: no account, no
+# network, no second device behind one entry. Several rules written for cloud
+# integrations therefore do not apply here, and say so rather than being
+# quietly claimed.
+rules:
+  # Bronze
+  action-setup:
+    status: exempt
+    comment: The integration registers no service actions.
+  appropriate-polling: done
+  brands: done
+  common-modules: done
+  config-flow: done
+  config-flow-test-coverage: done
+  dependency-transparency: done
+  docs-actions:
+    status: exempt
+    comment: The integration provides no actions.
+  docs-conditions:
+    status: exempt
+    comment: The integration provides no conditions.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  docs-triggers:
+    status: exempt
+    comment: The integration provides no triggers.
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry: done
+
+  # Silver
+  action-exceptions: done
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable: done
+  parallel-updates: done
+  reauthentication-flow:
+    status: exempt
+    comment: >-
+      The bus is reached over a local serial port. There are no credentials to
+      re-enter; a lost connection is a wiring or adapter problem, which the
+      repair issue covers.
+  test-coverage: done
+
+  # Gold
+  devices: done
+  diagnostics: done
+  discovery: done
+  discovery-update-info:
+    status: exempt
+    comment: >-
+      A USB adapter has no address that can change behind our back. The entry
+      is keyed to the stable by-id path.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices: done
+  docs-supported-functions: done
+  docs-troubleshooting: done
+  docs-use-cases: done
+  dynamic-devices:
+    status: exempt
+    comment: One ventilation unit per entry; nothing appears on the bus later.
+  entity-category: done
+  entity-device-class: done
+  entity-disabled-by-default:
+    status: exempt
+    comment: >-
+      Every entity maps to a register the unit reports anyway. None is noisy
+      enough to be worth hiding by default.
+  entity-translations: done
+  exception-translations: done
+  icon-translations: done
+  reconfiguration-flow: done
+  repair-issues: done
+  stale-devices:
+    status: exempt
+    comment: The single device lives and dies with its config entry.
+
+  # Platinum
+  async-dependency: done
+  inject-websession:
+    status: exempt
+    comment: The integration speaks serial, not HTTP.
+  strict-typing: done

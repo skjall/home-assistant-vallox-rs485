@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Échec d'écriture dans le registre {register}: {error}"
+    },
+    "not_connected": {
+      "message": "Le port série n'est pas ouvert, la commande n'a pas été envoyée."
+    },
+    "command_failed": {
+      "message": "La commande n'a pas pu être écrite sur l'unité de ventilation."
+    },
+    "select_unknown": {
+      "message": "Aucune valeur n'a encore été lue depuis l'appareil, ce commutateur ne peut donc pas être modifié. Attendez la prochaine mise à jour et réessayez."
+    },
+    "no_bus_data": {
+      "message": "Aucune donnée n'est encore arrivée de l'unité de ventilation. Vérifiez le câblage RS485 et l'adresse de l'appareil."
     }
   }
 }

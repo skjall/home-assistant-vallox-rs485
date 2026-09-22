@@ -1,13 +1,13 @@
 """Comprehensive tests for ValloxRS485ConfigFlow covering all methods and branches."""
+
 from __future__ import annotations
 
-from unittest.mock import MagicMock, patch, AsyncMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 try:
     from homeassistant.helpers.service_info.usb import UsbServiceInfo
@@ -15,17 +15,17 @@ except ImportError:
     from homeassistant.components.usb import UsbServiceInfo
 
 from custom_components.vallox_rs485.config_flow import (
+    CONF_DEVICE_ADDRESS,
+    CONF_SCAN_INTERVAL,
+    CONF_SERIAL_PORT,
     ValloxRS485ConfigFlow,
-    get_serial_ports,
+    _is_valid_vallox_telegram,
     get_rs485_ports,
+    get_serial_ports,
     get_stable_device_path,
     validate_vallox_bus,
-    _is_valid_vallox_telegram,
-    CONF_SERIAL_PORT,
-    CONF_SCAN_INTERVAL,
-    CONF_DEVICE_ADDRESS,
 )
-from custom_components.vallox_rs485.const import DOMAIN, VALLOX_DOMAIN
+from custom_components.vallox_rs485.const import VALLOX_DOMAIN
 
 
 class TestGetStableDevicePath:
@@ -45,11 +45,10 @@ class TestGetStableDevicePath:
 
     def test_no_matching_link(self) -> None:
         """Test when by-id exists but no matching link."""
-        with patch(
-            "custom_components.vallox_rs485.config_flow.Path"
-        ) as mock_path_class, patch(
-            "os.path.realpath"
-        ) as mock_realpath:
+        with (
+            patch("custom_components.vallox_rs485.config_flow.Path") as mock_path_class,
+            patch("os.path.realpath") as mock_realpath,
+        ):
             mock_path = MagicMock()
             mock_path.exists.return_value = True
 
@@ -77,11 +76,12 @@ class TestGetSerialPorts:
         mock_port.vid = 0x0403
         mock_port.pid = 0x6001
 
-        with patch(
-            "serial.tools.list_ports.comports", return_value=[mock_port]
-        ), patch(
-            "custom_components.vallox_rs485.config_flow.get_stable_device_path",
-            return_value="/dev/ttyUSB0"
+        with (
+            patch("serial.tools.list_ports.comports", return_value=[mock_port]),
+            patch(
+                "custom_components.vallox_rs485.config_flow.get_stable_device_path",
+                return_value="/dev/ttyUSB0",
+            ),
         ):
             result = get_serial_ports()
             assert "/dev/ttyUSB0" in result
@@ -95,11 +95,12 @@ class TestGetSerialPorts:
         mock_port.vid = None
         mock_port.pid = None
 
-        with patch(
-            "serial.tools.list_ports.comports", return_value=[mock_port]
-        ), patch(
-            "custom_components.vallox_rs485.config_flow.get_stable_device_path",
-            return_value="/dev/ttyUSB0"
+        with (
+            patch("serial.tools.list_ports.comports", return_value=[mock_port]),
+            patch(
+                "custom_components.vallox_rs485.config_flow.get_stable_device_path",
+                return_value="/dev/ttyUSB0",
+            ),
         ):
             result = get_serial_ports()
             assert "/dev/ttyUSB0" in result
@@ -120,8 +121,7 @@ class TestGetRS485Ports:
         mock_unknown.pid = 0x5678
 
         with patch(
-            "serial.tools.list_ports.comports",
-            return_value=[mock_rs485, mock_unknown]
+            "serial.tools.list_ports.comports", return_value=[mock_rs485, mock_unknown]
         ):
             result = get_rs485_ports()
             assert len(result) == 1
@@ -134,9 +134,7 @@ class TestGetRS485Ports:
         mock_unknown.vid = 0x1234
         mock_unknown.pid = 0x5678
 
-        with patch(
-            "serial.tools.list_ports.comports", return_value=[mock_unknown]
-        ):
+        with patch("serial.tools.list_ports.comports", return_value=[mock_unknown]):
             result = get_rs485_ports()
             assert result == []
 
@@ -174,15 +172,15 @@ class TestIsValidValloxTelegram:
 
     def test_wrong_length(self) -> None:
         """Test rejects wrong length."""
-        assert _is_valid_vallox_telegram(b"\x01\x11\x22\x29\x0F") is False
+        assert _is_valid_vallox_telegram(b"\x01\x11\x22\x29\x0f") is False
 
     def test_wrong_domain(self) -> None:
         """Test rejects wrong domain byte."""
-        assert _is_valid_vallox_telegram(b"\x00\x11\x22\x29\x0F\x55") is False
+        assert _is_valid_vallox_telegram(b"\x00\x11\x22\x29\x0f\x55") is False
 
     def test_wrong_checksum(self) -> None:
         """Test rejects wrong checksum."""
-        assert _is_valid_vallox_telegram(b"\x01\x11\x22\x29\x0F\xFF") is False
+        assert _is_valid_vallox_telegram(b"\x01\x11\x22\x29\x0f\xff") is False
 
     def test_invalid_sender(self) -> None:
         """Test rejects invalid sender address."""
@@ -220,9 +218,7 @@ class TestValloxRS485ConfigFlowUSB:
     """Tests for USB discovery flow."""
 
     @pytest.mark.asyncio
-    async def test_async_step_usb_no_vallox_traffic(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_usb_no_vallox_traffic(self, hass: HomeAssistant) -> None:
         """Test USB discovery aborts when no Vallox traffic."""
         discovery_info = UsbServiceInfo(
             device="/dev/ttyUSB0",
@@ -243,12 +239,10 @@ class TestValloxRS485ConfigFlowUSB:
                 return False
             return func(*args)
 
-        with patch.object(
-            flow, "async_set_unique_id", new_callable=AsyncMock
-        ), patch.object(
-            flow, "_abort_if_unique_id_configured"
-        ), patch.object(
-            hass, "async_add_executor_job", side_effect=mock_executor_job
+        with (
+            patch.object(flow, "async_set_unique_id", new_callable=AsyncMock),
+            patch.object(flow, "_abort_if_unique_id_configured"),
+            patch.object(hass, "async_add_executor_job", side_effect=mock_executor_job),
         ):
             result = await flow.async_step_usb(discovery_info)
 
@@ -256,9 +250,7 @@ class TestValloxRS485ConfigFlowUSB:
             assert result["reason"] == "no_vallox_traffic"
 
     @pytest.mark.asyncio
-    async def test_async_step_usb_vallox_detected(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_usb_vallox_detected(self, hass: HomeAssistant) -> None:
         """Test USB discovery proceeds when Vallox traffic detected."""
         discovery_info = UsbServiceInfo(
             device="/dev/ttyUSB0",
@@ -280,15 +272,14 @@ class TestValloxRS485ConfigFlowUSB:
                 return True
             return func(*args)
 
-        with patch.object(
-            flow, "async_set_unique_id", new_callable=AsyncMock
-        ), patch.object(
-            flow, "_abort_if_unique_id_configured"
-        ), patch.object(
-            hass, "async_add_executor_job", side_effect=mock_executor_job
-        ), patch.object(
-            flow, "async_step_usb_confirm", new_callable=AsyncMock
-        ) as mock_confirm:
+        with (
+            patch.object(flow, "async_set_unique_id", new_callable=AsyncMock),
+            patch.object(flow, "_abort_if_unique_id_configured"),
+            patch.object(hass, "async_add_executor_job", side_effect=mock_executor_job),
+            patch.object(
+                flow, "async_step_usb_confirm", new_callable=AsyncMock
+            ) as mock_confirm,
+        ):
             mock_confirm.return_value = {"type": FlowResultType.FORM}
 
             await flow.async_step_usb(discovery_info)
@@ -301,9 +292,7 @@ class TestValloxRS485ConfigFlowUSBConfirm:
     """Tests for USB confirmation flow."""
 
     @pytest.mark.asyncio
-    async def test_async_step_usb_confirm_show_form(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_usb_confirm_show_form(self, hass: HomeAssistant) -> None:
         """Test USB confirm shows form when no input."""
         flow = ValloxRS485ConfigFlow()
         flow.hass = hass
@@ -359,9 +348,7 @@ class TestValloxRS485ConfigFlowUser:
             assert result["reason"] == "no_serial_ports"
 
     @pytest.mark.asyncio
-    async def test_async_step_user_show_form(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_user_show_form(self, hass: HomeAssistant) -> None:
         """Test user step shows form."""
         flow = ValloxRS485ConfigFlow()
         flow.hass = hass
@@ -378,9 +365,7 @@ class TestValloxRS485ConfigFlowUser:
             assert result["step_id"] == "user"
 
     @pytest.mark.asyncio
-    async def test_async_step_user_cannot_connect(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_user_cannot_connect(self, hass: HomeAssistant) -> None:
         """Test user step shows error when cannot connect."""
         flow = ValloxRS485ConfigFlow()
         flow.hass = hass
@@ -400,12 +385,10 @@ class TestValloxRS485ConfigFlowUser:
                 return False
             return None
 
-        with patch.object(
-            flow, "async_set_unique_id", new_callable=AsyncMock
-        ), patch.object(
-            flow, "_abort_if_unique_id_configured"
-        ), patch.object(
-            hass, "async_add_executor_job", side_effect=mock_executor_job
+        with (
+            patch.object(flow, "async_set_unique_id", new_callable=AsyncMock),
+            patch.object(flow, "_abort_if_unique_id_configured"),
+            patch.object(hass, "async_add_executor_job", side_effect=mock_executor_job),
         ):
             result = await flow.async_step_user(user_input)
 
@@ -413,9 +396,7 @@ class TestValloxRS485ConfigFlowUser:
             assert result["errors"]["base"] == "cannot_connect"
 
     @pytest.mark.asyncio
-    async def test_async_step_user_no_vallox_traffic(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_user_no_vallox_traffic(self, hass: HomeAssistant) -> None:
         """Test user step shows error when no Vallox traffic."""
         flow = ValloxRS485ConfigFlow()
         flow.hass = hass
@@ -437,12 +418,10 @@ class TestValloxRS485ConfigFlowUser:
                 return False
             return None
 
-        with patch.object(
-            flow, "async_set_unique_id", new_callable=AsyncMock
-        ), patch.object(
-            flow, "_abort_if_unique_id_configured"
-        ), patch.object(
-            hass, "async_add_executor_job", side_effect=mock_executor_job
+        with (
+            patch.object(flow, "async_set_unique_id", new_callable=AsyncMock),
+            patch.object(flow, "_abort_if_unique_id_configured"),
+            patch.object(hass, "async_add_executor_job", side_effect=mock_executor_job),
         ):
             result = await flow.async_step_user(user_input)
 
@@ -450,9 +429,7 @@ class TestValloxRS485ConfigFlowUser:
             assert result["errors"]["base"] == "no_vallox_traffic"
 
     @pytest.mark.asyncio
-    async def test_async_step_user_success(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_user_success(self, hass: HomeAssistant) -> None:
         """Test user step creates entry on success."""
         flow = ValloxRS485ConfigFlow()
         flow.hass = hass
@@ -470,18 +447,14 @@ class TestValloxRS485ConfigFlowUser:
             call_count[0] += 1
             if call_count[0] == 1:  # get_serial_ports
                 return {"/dev/ttyUSB0": "USB Serial"}
-            elif call_count[0] == 2:  # _test_port
-                return True
-            elif call_count[0] == 3:  # validate_vallox_bus
+            elif call_count[0] == 2 or call_count[0] == 3:  # _test_port
                 return True
             return None
 
-        with patch.object(
-            flow, "async_set_unique_id", new_callable=AsyncMock
-        ), patch.object(
-            flow, "_abort_if_unique_id_configured"
-        ), patch.object(
-            hass, "async_add_executor_job", side_effect=mock_executor_job
+        with (
+            patch.object(flow, "async_set_unique_id", new_callable=AsyncMock),
+            patch.object(flow, "_abort_if_unique_id_configured"),
+            patch.object(hass, "async_add_executor_job", side_effect=mock_executor_job),
         ):
             result = await flow.async_step_user(user_input)
 
@@ -500,7 +473,7 @@ class TestValloxRS485ConfigFlowTestPort:
 
         with patch(
             "custom_components.vallox_rs485.config_flow.serial.Serial",
-            return_value=mock_serial
+            return_value=mock_serial,
         ):
             result = flow._test_port("/dev/ttyUSB0")
             assert result is True
@@ -514,7 +487,7 @@ class TestValloxRS485ConfigFlowTestPort:
 
         with patch(
             "custom_components.vallox_rs485.config_flow.serial.Serial",
-            side_effect=serial.SerialException("Cannot open")
+            side_effect=serial.SerialException("Cannot open"),
         ):
             result = flow._test_port("/dev/ttyUSB0")
             assert result is False
@@ -524,9 +497,7 @@ class TestValloxRS485ConfigFlowReconfigure:
     """Tests for reconfiguration flow."""
 
     @pytest.mark.asyncio
-    async def test_async_step_reconfigure_show_form(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_step_reconfigure_show_form(self, hass: HomeAssistant) -> None:
         """Test reconfigure step shows form."""
         config_entry = MockConfigEntry(
             domain="vallox_rs485",

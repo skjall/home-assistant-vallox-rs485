@@ -1,32 +1,30 @@
 """Tests for platform setup functions (async_setup_entry) in all entity platforms."""
+
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from custom_components.vallox_rs485.coordinator import ValloxCoordinator
-from custom_components.vallox_rs485.vallox_protocol import ValloxState
-from custom_components.vallox_rs485.const import (
-    REG_FAN_SPEED,
-    REG_HUMIDITY,
-    REG_SELECT,
-    REG_MULTI_PURPOSE_2,
-    REG_TEMP_OUTSIDE,
-    REG_TEMP_INSIDE,
-    REG_TEMP_INCOMING,
-    REG_TEMP_EXHAUST,
-    REG_HEATING_SETPOINT,
-    REG_LAST_FAULT,
-)
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from vallox_rs485_protocol import ValloxState
 
 # Import the setup functions
-from custom_components.vallox_rs485 import sensor, binary_sensor, switch, fan, number
+from custom_components.vallox_rs485 import binary_sensor, fan, number, sensor, switch
+from custom_components.vallox_rs485.const import (
+    REG_FAN_SPEED,
+    REG_HEATING_SETPOINT,
+    REG_HUMIDITY,
+    REG_LAST_FAULT,
+    REG_MULTI_PURPOSE_2,
+    REG_SELECT,
+    REG_TEMP_EXHAUST,
+    REG_TEMP_INCOMING,
+    REG_TEMP_INSIDE,
+    REG_TEMP_OUTSIDE,
+)
+from custom_components.vallox_rs485.coordinator import ValloxCoordinator
 
 
 @pytest.fixture
@@ -59,9 +57,16 @@ def mock_coordinator(hass: HomeAssistant, mock_vallox_state):
     coordinator.data = mock_vallox_state
     coordinator._state = mock_vallox_state
     coordinator._seen_registers = {
-        REG_FAN_SPEED, REG_HUMIDITY, REG_SELECT, REG_MULTI_PURPOSE_2,
-        REG_TEMP_OUTSIDE, REG_TEMP_INSIDE, REG_TEMP_INCOMING, REG_TEMP_EXHAUST,
-        REG_HEATING_SETPOINT, REG_LAST_FAULT
+        REG_FAN_SPEED,
+        REG_HUMIDITY,
+        REG_SELECT,
+        REG_MULTI_PURPOSE_2,
+        REG_TEMP_OUTSIDE,
+        REG_TEMP_INSIDE,
+        REG_TEMP_INCOMING,
+        REG_TEMP_EXHAUST,
+        REG_HEATING_SETPOINT,
+        REG_LAST_FAULT,
     }
     coordinator.last_update_success = True
     coordinator._serial_port = "/dev/ttyUSB0"
@@ -236,9 +241,7 @@ class TestFanPlatformNoData:
     """Tests for fan platform when data is None."""
 
     @pytest.mark.asyncio
-    async def test_async_setup_entry_no_data(
-        self, hass: HomeAssistant
-    ) -> None:
+    async def test_async_setup_entry_no_data(self, hass: HomeAssistant) -> None:
         """Test fan platform when coordinator has no data."""
         mock_coordinator = MagicMock(spec=ValloxCoordinator)
         mock_coordinator.hass = hass
