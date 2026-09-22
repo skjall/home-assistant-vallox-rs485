@@ -171,14 +171,37 @@ Two traps:
 PyPI publishing uses **Trusted Publishing** — no token is stored anywhere; the
 trust is configured once on pypi.org for that workflow.
 
-## The branch protection names the checks
+**That configuration is a step only the owner of the PyPI account can take,
+and nothing fails loudly while it is missing.** The first release tags,
+writes the changelog and creates the GitHub release; only the publishing job
+fails, and the manifest now pins a package nobody can install. Home Assistant
+then cannot load the integration anywhere but on a machine the wheel was
+copied to by hand.
+
+So before the first release of a repository with a package under `lib/`, the
+account owner registers a *pending publisher* at
+<https://pypi.org/manage/account/publishing/>. `ha-standards protect` asks
+PyPI whether the package exists and, while it does not, prints the five
+values the form asks for. **Hand them to the user in full, straight away** -
+not as a later to-do, and not after the release has already failed. A release
+that failed to publish is fixed by re-running its workflow once the publisher
+is registered.
+
+## The ruleset names the checks
 
 A required status check is a **name**, not a reference to a workflow. Rename a
 job, split a workflow, or adopt this package and drop the one the repository
-started with, and the protection waits for a context nobody reports any more.
+started with, and the rule waits for a context nobody reports any more.
 GitHub shows that as *"Expected — Waiting for status to be reported"* with no
 job behind it, and nothing can be merged: the checks that do run are green and
 irrelevant, because they are not the ones named.
+
+**One source, and it is the ruleset.** GitHub has two ways to require a check,
+the older branch protection and the newer rulesets. A repository carrying both
+lists every check twice in the merge box, once per source, and the two can
+drift apart until "which checks must pass" depends on which settings page you
+open. A ruleset does everything the branch protection did here, so it is the
+only one written, and a leftover branch protection is removed.
 
 So the names are never written down twice:
 
@@ -198,13 +221,16 @@ creating the repository, straight after the first push of `main`, as much as
 `git init` does. The same run also sets up what every integration here needs
 around the checks:
 
-- a **ruleset** on the default branch: pull requests only, no force-push, no
-  deletion, the same checks. No approval is required and administrators may
-  bypass it — one maintainer has nobody to wait for;
+- the **ruleset** itself on the default branch: pull requests only, no
+  force-push, no deletion, and the checks above. No approval is required and
+  administrators may bypass it — one maintainer has nobody to wait for;
 - **workflow permissions** that let release-please open its release pull
   request, which GitHub otherwise refuses;
 - where `lib/` builds a package, the **`pypi` environment** its publishing job
   runs in, limited to the default branch and to `v*` tags.
+
+For a package under `lib/` it also asks PyPI whether the package is
+published, and prints what pypi.org still needs if it is not - see *Release*.
 
 Each step reads what is there and writes what is wanted, so running it again
 is always safe.
@@ -264,9 +290,9 @@ Never `--no-verify`.
 
 The gates under `scripts/_ha_standards/` are **written by
 ha-integration-standards, not maintained here**. They are vendored rather than
-fetched because this repository is public and its CI runs on GitHub: a hook
-that cloned a private tool would need a secret, and a pull request from a fork
-never gets one.
+fetched so that a checkout is all a build needs: no index, no network, no
+version resolver between a commit and its verdict, and a pull request from a
+fork runs exactly the same gates.
 
 So do not edit them. `run.py verify` hashes each file and runs before the
 other gates, precisely so that "make the check pass" cannot mean "change the
