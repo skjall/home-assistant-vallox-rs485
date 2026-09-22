@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -551,7 +552,9 @@ class TestValloxCoordinatorClass:
         coordinator._seen_registers = set()
         coordinator._register_timestamps = {}
         coordinator._state = ValloxState()
-        coordinator._last_unavailable_log = 0
+        # Long enough ago to be past the rate limit. A literal 0 is not, on a
+        # machine whose monotonic clock started seconds ago.
+        coordinator._last_unavailable_log = time.monotonic() - 61
         coordinator._lock = asyncio.Lock()
         return coordinator
 

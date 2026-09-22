@@ -9,6 +9,7 @@ the task outright.
 from __future__ import annotations
 
 import asyncio
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -233,7 +234,9 @@ class TestRepairIssues:
     def test_the_unavailable_log_is_rate_limited(self, hass: HomeAssistant) -> None:
         """A device that is away for hours must not fill the log."""
         coordinator = self._coordinator(hass)
-        coordinator._last_unavailable_log = 0
+        # Long enough ago to be past the rate limit. A literal 0 is not, on a
+        # machine whose monotonic clock started seconds ago.
+        coordinator._last_unavailable_log = time.monotonic() - 61
 
         with patch(
             "custom_components.vallox_rs485.coordinator._LOGGER.warning"

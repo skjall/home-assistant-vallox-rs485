@@ -219,8 +219,11 @@ class TestCoordinatorPolling:
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
             coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
             coordinator._seen_registers = set(POLL_REGISTERS)
-            # Set all timestamps to old value (stale)
-            coordinator._register_timestamps = {r: 0 for r in POLL_REGISTERS}
+            # Stale means older than the maximum age, measured against the
+            # monotonic clock. A literal 0 is not stale on a machine that
+            # booted seconds ago, which is exactly what a CI runner is.
+            stale = time.monotonic() - coordinator._max_register_age - 1
+            coordinator._register_timestamps = dict.fromkeys(POLL_REGISTERS, stale)
             coordinator._request_register = AsyncMock()
 
             await coordinator._poll_missing_registers()

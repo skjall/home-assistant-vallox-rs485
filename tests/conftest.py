@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -80,7 +81,9 @@ def mock_coordinator(hass: HomeAssistant, mock_vallox_state):
         coordinator._state = mock_vallox_state
         coordinator._lock = asyncio.Lock()
         coordinator._register_timestamps = {}
-        coordinator._last_unavailable_log = 0
+        # Long enough ago to be past the rate limit. A literal 0 is not, on a
+        # machine whose monotonic clock started seconds ago.
+        coordinator._last_unavailable_log = time.monotonic() - 61
         coordinator.async_request_refresh = AsyncMock()
         coordinator.async_set_power_state = AsyncMock()
         coordinator.async_set_fan_speed = AsyncMock()
