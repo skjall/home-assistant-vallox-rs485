@@ -1,4 +1,4 @@
-# Vendored from ha-integration-standards 0.2.0. Do not edit:
+# Vendored from ha-integration-standards 0.3.0. Do not edit:
 # `ha-standards sync` rewrites this file, and `run.py verify` fails the
 # commit when it has been changed by hand.
 
@@ -13,4 +13,4 @@ integration's code.
 
 __all__ = ["__version__"]
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
