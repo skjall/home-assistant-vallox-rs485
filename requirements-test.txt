@@ -1,0 +1,5 @@
+# Home Assistant itself. What the components it pulls in need on top is read
+# out of the installed release by scripts/ha_test_requirements.py, so those
+# versions never have to be pinned here and never drift from the release the
+# tests actually run against.
+pytest-homeassistant-custom-component

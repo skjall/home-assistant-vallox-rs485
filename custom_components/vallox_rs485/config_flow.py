@@ -4,21 +4,15 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import Any
 
 import serial
 import serial.tools.list_ports
 import voluptuous as vol
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_NAME
 
-if TYPE_CHECKING:
-    from homeassistant.helpers.service_info.usb import UsbServiceInfo
-else:
-    try:
-        from homeassistant.helpers.service_info.usb import UsbServiceInfo
-    except ImportError:
-        from homeassistant.components.usb import UsbServiceInfo
+from homeassistant.helpers.service_info.usb import UsbServiceInfo
 
 from .const import (
     DEFAULT_BAUDRATE,

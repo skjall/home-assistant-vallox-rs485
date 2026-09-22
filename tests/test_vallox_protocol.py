@@ -253,8 +253,10 @@ class TestCreateRequests:
         telegram = create_read_request(0x29)
         assert telegram.domain == 0x01
         assert telegram.receiver == 0x11
-        assert telegram.register == 0x29
-        assert telegram.value == 0x00
+        # Per docs/PROTOCOL.md: VARIABLE is 0x00 and DATA carries the
+        # register being asked for.
+        assert telegram.register == 0x00
+        assert telegram.value == 0x29
 
     def test_create_write_request(self) -> None:
         """Test write request creation."""

@@ -1,6 +1,50 @@
 repos:
   - repo: local
     hooks:
+      # Written by ha-integration-standards 0.1.2; `ha-standards sync`
+      # updates them. Run `python3 scripts/_ha_standards/run.py --help` to see the gates.
+      - id: ha-verify
+        name: Gates - the vendored copy is the one that was synced
+        entry: python3 scripts/_ha_standards/run.py verify
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ha-quality-scale
+        name: Quality scale - the code holds what quality_scale.yaml claims
+        entry: python3 scripts/_ha_standards/run.py quality-scale
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ha-types
+        name: Types - mypy --strict against the targeted Home Assistant
+        entry: python3 scripts/_ha_standards/run.py types
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ha-tests
+        name: Tests - against the targeted Home Assistant, in Docker
+        entry: python3 scripts/_ha_standards/run.py tests -q
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ha-coverage
+        name: Coverage - the floors the claimed tier requires
+        entry: python3 scripts/_ha_standards/run.py coverage
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: ha-commit-message
+        name: Commit message - Conventional Commits, in English
+        entry: python3 scripts/_ha_standards/run.py commit-message
+        language: system
+        stages: [commit-msg]
+  - repo: local
+    hooks:
       - id: pytest
         name: pytest with coverage
         entry: pytest --cov=custom_components/vallox_rs485 --cov-fail-under=95

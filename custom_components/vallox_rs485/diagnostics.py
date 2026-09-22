@@ -31,7 +31,7 @@ async def async_get_config_entry_diagnostics(
         },
         "coordinator": {
             "last_update_success": coordinator.last_update_success,
-            "serial_connected": coordinator._serial is not None,
+            "serial_connected": coordinator._writer is not None,
             "seen_registers": sorted(list(coordinator._seen_registers)),
             "seen_registers_hex": [
                 f"0x{r:02X}" for r in sorted(coordinator._seen_registers)

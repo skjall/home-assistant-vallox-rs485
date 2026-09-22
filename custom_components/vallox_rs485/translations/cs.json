@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "Sériový port není otevřený, příkaz nebyl odeslán."
+    },
+    "command_failed": {
+      "message": "Příkaz se nepodařilo zapsat do větrací jednotky."
+    },
+    "select_unknown": {
+      "message": "Ze zařízení dosud nebyla načtena žádná hodnota, takže tento přepínač nelze změnit. Počkejte na další aktualizaci a zkuste to znovu."
+    },
+    "no_bus_data": {
+      "message": "Z větrací jednotky zatím nedorazila žádná data. Zkontrolujte kabeláž RS485 a adresu zařízení."
     }
   }
 }

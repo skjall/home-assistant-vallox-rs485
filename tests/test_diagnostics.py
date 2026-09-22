@@ -66,7 +66,7 @@ def mock_coordinator(hass: HomeAssistant, mock_vallox_state):
     coordinator = MagicMock(spec=ValloxCoordinator)
     coordinator.hass = hass
     coordinator.data = mock_vallox_state
-    coordinator._serial = MagicMock()
+    coordinator._writer = MagicMock()
     coordinator._seen_registers = {REG_FAN_SPEED, REG_HUMIDITY}
     coordinator.last_update_success = True
     return coordinator
@@ -125,7 +125,7 @@ class TestDiagnostics:
         """Test diagnostics when coordinator has no data."""
         mock_coordinator = MagicMock(spec=ValloxCoordinator)
         mock_coordinator.data = None
-        mock_coordinator._serial = None
+        mock_coordinator._writer = None
         mock_coordinator._seen_registers = set()
         mock_coordinator.last_update_success = False
 

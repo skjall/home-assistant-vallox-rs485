@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Scrittura nel registro {register} fallita: {error}"
+    },
+    "not_connected": {
+      "message": "La porta seriale non è aperta, il comando non è stato inviato."
+    },
+    "command_failed": {
+      "message": "Impossibile scrivere il comando sull'unità di ventilazione."
+    },
+    "select_unknown": {
+      "message": "Nessun valore è ancora stato letto dal dispositivo, quindi questo interruttore non può essere modificato. Attendi il prossimo aggiornamento e riprova."
+    },
+    "no_bus_data": {
+      "message": "Non sono ancora arrivati dati dall'unità di ventilazione. Controlla il cablaggio RS485 e l'indirizzo del dispositivo."
     }
   }
 }

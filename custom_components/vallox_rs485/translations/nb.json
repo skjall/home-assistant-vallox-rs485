@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "Serieporten er ikke åpen, kommandoen ble ikke sendt."
+    },
+    "command_failed": {
+      "message": "Kommandoen kunne ikke skrives til ventilasjonsanlegget."
+    },
+    "select_unknown": {
+      "message": "Ingen verdi er lest fra enheten ennå, så denne bryteren kan ikke endres. Vent på neste oppdatering og prøv igjen."
+    },
+    "no_bus_data": {
+      "message": "Det har ennå ikke kommet data fra ventilasjonsanlegget. Kontroller RS485-kablingen og enhetsadressen."
     }
   }
 }

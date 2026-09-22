@@ -7,11 +7,14 @@ from typing import Any
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ValloxConfigEntry
-from .const import DOMAIN, REQ_FAN_SPEED, get_device_info
+from .const import REQ_FAN_SPEED
 from .coordinator import ValloxCoordinator
+from .entity import ValloxEntity
+
+# The coordinator owns the bus; entities never reach it in parallel.
+PARALLEL_UPDATES = 1
 
 
 async def async_setup_entry(
@@ -26,10 +29,9 @@ async def async_setup_entry(
         async_add_entities([ValloxFan(coordinator, entry)])
 
 
-class ValloxFan(CoordinatorEntity[ValloxCoordinator], FanEntity):
+class ValloxFan(ValloxEntity, FanEntity):
     """Representation of the Vallox ventilation fan."""
 
-    _attr_has_entity_name = True
     _attr_translation_key = "ventilation"
     _attr_supported_features = FanEntityFeature.SET_SPEED | FanEntityFeature.PRESET_MODE
     _attr_speed_count = 8
@@ -41,9 +43,7 @@ class ValloxFan(CoordinatorEntity[ValloxCoordinator], FanEntity):
         entry: ValloxConfigEntry,
     ) -> None:
         """Initialize the fan."""
-        super().__init__(coordinator)
-        self._attr_unique_id = f"{entry.entry_id}_fan"
-        self._attr_device_info = get_device_info(entry.entry_id, entry.title)
+        super().__init__(coordinator, entry.entry_id, entry.title, "fan")
 
     @property
     def is_on(self) -> bool | None:

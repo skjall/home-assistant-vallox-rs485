@@ -8,6 +8,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.const import Platform
 
 from custom_components.vallox_rs485 import (
@@ -15,7 +16,9 @@ from custom_components.vallox_rs485 import (
     async_unload_entry,
     PLATFORMS,
 )
+from custom_components.vallox_rs485.const import REG_FAN_SPEED
 from custom_components.vallox_rs485.coordinator import ValloxCoordinator
+from custom_components.vallox_rs485.vallox_protocol import create_read_request
 from custom_components.vallox_rs485.vallox_protocol import ValloxState
 
 
@@ -153,7 +156,8 @@ class TestCoordinatorIntegration:
             assert coordinator._serial_port == "/dev/ttyUSB0"
             assert coordinator._device_address == 0x22
             assert coordinator._seen_registers == set()
-            assert coordinator._serial is None
+            assert coordinator._reader is None
+            assert coordinator._writer is None
 
     @pytest.mark.asyncio
     async def test_coordinator_has_seen_register(self, hass: HomeAssistant) -> None:
@@ -181,33 +185,31 @@ class TestCoordinatorIntegration:
 
     @pytest.mark.asyncio
     async def test_coordinator_close_serial(self, hass: HomeAssistant) -> None:
-        """Test _close_serial method."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            mock_serial = MagicMock()
-            coordinator._serial = mock_serial
+        """Closing drops the writer and clears both ends."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        writer = MagicMock()
+        writer.wait_closed = AsyncMock()
+        coordinator._reader = MagicMock()
+        coordinator._writer = writer
 
-            coordinator._close_serial()
+        await coordinator._close_serial()
 
-            mock_serial.close.assert_called_once()
-            assert coordinator._serial is None
+        writer.close.assert_called_once()
+        assert coordinator._reader is None
+        assert coordinator._writer is None
 
     @pytest.mark.asyncio
     async def test_coordinator_close_serial_exception(self, hass: HomeAssistant) -> None:
-        """Test _close_serial handles exceptions."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            mock_serial = MagicMock()
-            mock_serial.close.side_effect = Exception("Close error")
-            coordinator._serial = mock_serial
+        """A port that refuses to close still leaves the coordinator closed."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        writer = MagicMock()
+        writer.wait_closed = AsyncMock(side_effect=OSError("Close error"))
+        coordinator._writer = writer
 
-            # Should not raise
-            coordinator._close_serial()
-            assert coordinator._serial is None
+        await coordinator._close_serial()
+
+        assert coordinator._reader is None
+        assert coordinator._writer is None
 
     @pytest.mark.asyncio
     async def test_coordinator_log_unavailable(self, hass: HomeAssistant) -> None:
@@ -230,18 +232,17 @@ class TestCoordinatorIntegration:
 
     @pytest.mark.asyncio
     async def test_coordinator_async_shutdown(self, hass: HomeAssistant) -> None:
-        """Test async_shutdown method."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            mock_serial = MagicMock()
-            coordinator._serial = mock_serial
+        """Shutting down closes the port and forgets both ends."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        writer = MagicMock()
+        writer.wait_closed = AsyncMock()
+        coordinator._reader = MagicMock()
+        coordinator._writer = writer
 
-            await coordinator.async_shutdown()
+        await coordinator.async_shutdown()
 
-            mock_serial.close.assert_called_once()
-            assert coordinator._serial is None
+        writer.close.assert_called_once()
+        assert coordinator._writer is None
 
     @pytest.mark.asyncio
     async def test_coordinator_parse_buffer(self, hass: HomeAssistant) -> None:
@@ -318,32 +319,31 @@ class TestCoordinatorIntegration:
 
     @pytest.mark.asyncio
     async def test_coordinator_write_serial(self, hass: HomeAssistant) -> None:
-        """Test _write_serial method."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            mock_serial = MagicMock()
-            coordinator._serial = mock_serial
+        """Writing hands the bytes to the writer and drains them."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        writer = MagicMock()
+        writer.drain = AsyncMock()
+        coordinator._writer = writer
+        coordinator._ensure_connected = AsyncMock()
+        telegram = create_read_request(REG_FAN_SPEED, coordinator._device_address)
 
-            coordinator._write_serial(b"\x01\x02\x03")
+        await coordinator._send_telegram(telegram)
 
-            mock_serial.write.assert_called_once_with(b"\x01\x02\x03")
-            mock_serial.flush.assert_called_once()
+        writer.write.assert_called_once_with(telegram.to_bytes())
+        writer.drain.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_coordinator_write_serial_raises_when_closed(self, hass: HomeAssistant) -> None:
-        """Test _write_serial raises when serial is closed."""
-        import serial
+    async def test_coordinator_write_serial_raises_when_closed(
+        self, hass: HomeAssistant
+    ) -> None:
+        """A closed port reaches the user as an error, not as a library traceback."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        coordinator._writer = None
+        coordinator._ensure_connected = AsyncMock()
+        telegram = create_read_request(REG_FAN_SPEED, coordinator._device_address)
 
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            coordinator._serial = None
-
-            with pytest.raises(serial.SerialException):
-                coordinator._write_serial(b"\x01\x02\x03")
+        with pytest.raises(HomeAssistantError):
+            await coordinator._send_telegram(telegram)
 
     @pytest.mark.asyncio
     async def test_coordinator_async_set_fan_speed(self, hass: HomeAssistant) -> None:

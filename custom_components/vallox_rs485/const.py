@@ -1,7 +1,6 @@
 """Constants for Vallox RS485 integration."""
-from typing import Any, Final
+from typing import Final
 
-from homeassistant.helpers.device_registry import DeviceInfo
 
 DOMAIN: Final = "vallox_rs485"
 
@@ -207,12 +206,3 @@ REQ_FIREPLACE_COUNTDOWN: Final = (REG_FIREPLACE_COUNTDOWN,)
 REQ_CO2_SETPOINT: Final = (REG_CO2_SETPOINT_UPPER, REG_CO2_SETPOINT_LOWER)
 REQ_HUMIDITY_LEVEL: Final = (REG_BASIC_HUMIDITY_LEVEL,)
 
-
-def get_device_info(entry_id: str, title: str) -> DeviceInfo:
-    """Create device info dict for entities."""
-    return DeviceInfo(
-        identifiers={(DOMAIN, entry_id)},
-        name=title,
-        manufacturer="Vallox",
-        model="RS485",
-    )

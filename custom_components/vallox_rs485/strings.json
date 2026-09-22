@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "The serial port is not open, so the command was not sent."
+    },
+    "command_failed": {
+      "message": "The command could not be written to the ventilation unit."
+    },
+    "select_unknown": {
+      "message": "No value has been read from the unit yet, so this switch cannot be changed. Wait for the next bus update and try again."
+    },
+    "no_bus_data": {
+      "message": "No data has arrived from the ventilation unit yet. Check the RS485 wiring and the device address."
     }
   }
 }

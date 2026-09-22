@@ -213,11 +213,17 @@ class TestDeviceInfo:
     """Tests for device info helper."""
 
     def test_get_device_info(self) -> None:
-        """Test device info helper function."""
-        from custom_components.vallox_rs485.const import get_device_info, DOMAIN
+        """Every entity lands on the one device, keyed by the entry."""
+        from unittest.mock import MagicMock
 
-        result = get_device_info("test_entry_id", "Vallox Test")
+        from custom_components.vallox_rs485.const import DOMAIN
+        from custom_components.vallox_rs485.entity import ValloxEntity
+
+        entity = ValloxEntity(MagicMock(), "test_entry_id", "Vallox Test", "probe")
+
+        result = entity.device_info
         assert result["name"] == "Vallox Test"
         assert result["manufacturer"] == "Vallox"
         assert result["model"] == "RS485"
         assert (DOMAIN, "test_entry_id") in result["identifiers"]
+        assert entity.unique_id == "test_entry_id_probe"

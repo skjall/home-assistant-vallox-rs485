@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "Den serielle port er ikke åben, kommandoen blev ikke sendt."
+    },
+    "command_failed": {
+      "message": "Kommandoen kunne ikke skrives til ventilationsanlægget."
+    },
+    "select_unknown": {
+      "message": "Der er endnu ikke læst nogen værdi fra enheden, så denne kontakt kan ikke ændres. Vent på næste opdatering, og prøv igen."
+    },
+    "no_bus_data": {
+      "message": "Der er endnu ikke modtaget data fra ventilationsanlægget. Kontrollér RS485-kablingen og enhedsadressen."
     }
   }
 }

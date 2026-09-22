@@ -19,12 +19,9 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import ValloxConfigEntry
 from .const import (
-    get_device_info,
-    DOMAIN,
     REQ_TEMP_OUTSIDE,
     REQ_TEMP_EXHAUST,
     REQ_TEMP_INSIDE,
@@ -39,7 +36,11 @@ from .const import (
     REQ_POST_HEATING_CNT,
 )
 from .coordinator import ValloxCoordinator
+from .entity import ValloxDescribedEntity
 from .vallox_protocol import ValloxState
+
+# The coordinator owns the bus; entities never reach it in parallel.
+PARALLEL_UPDATES = 1
 
 
 @dataclass(frozen=True)
@@ -134,7 +135,6 @@ SENSOR_DESCRIPTIONS: tuple[ValloxSensorEntityDescription, ...] = (
     ValloxSensorEntityDescription(
         key="fan_speed",
         translation_key="fan_speed",
-        icon="mdi:fan",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda state: state.fan_speed,
         required_registers=REQ_FAN_SPEED,
@@ -152,7 +152,6 @@ SENSOR_DESCRIPTIONS: tuple[ValloxSensorEntityDescription, ...] = (
         key="heat_recovery_efficiency",
         translation_key="heat_recovery_efficiency",
         native_unit_of_measurement=PERCENTAGE,
-        icon="mdi:heat-wave",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=_calculate_efficiency,
         required_registers=REQ_TEMP_INSIDE,
@@ -160,7 +159,6 @@ SENSOR_DESCRIPTIONS: tuple[ValloxSensorEntityDescription, ...] = (
     ValloxSensorEntityDescription(
         key="last_fault",
         translation_key="last_fault",
-        icon="mdi:alert-circle",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda state: state.last_fault,
         required_registers=REQ_LAST_FAULT,
@@ -169,7 +167,6 @@ SENSOR_DESCRIPTIONS: tuple[ValloxSensorEntityDescription, ...] = (
         key="fireplace_countdown",
         translation_key="fireplace_countdown",
         native_unit_of_measurement=UnitOfTime.MINUTES,
-        icon="mdi:fireplace",
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda state: state.fireplace_countdown_minutes,
@@ -178,7 +175,6 @@ SENSOR_DESCRIPTIONS: tuple[ValloxSensorEntityDescription, ...] = (
     ValloxSensorEntityDescription(
         key="post_heating_on_counter",
         translation_key="post_heating_on_counter",
-        icon="mdi:counter",
         state_class=SensorStateClass.TOTAL_INCREASING,
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda state: state.post_heating_on_counter,
@@ -205,11 +201,10 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ValloxSensor(CoordinatorEntity[ValloxCoordinator], SensorEntity):
+class ValloxSensor(ValloxDescribedEntity, SensorEntity):
     """Representation of a Vallox sensor."""
 
     entity_description: ValloxSensorEntityDescription
-    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -218,19 +213,11 @@ class ValloxSensor(CoordinatorEntity[ValloxCoordinator], SensorEntity):
         entry: ValloxConfigEntry,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, entry.entry_id, entry.title, description.key)
         self.entity_description = description
-        self._attr_unique_id = f"{entry.entry_id}_{description.key}"
-        self._attr_device_info = get_device_info(entry.entry_id, entry.title)
 
     @property
     def native_value(self) -> int | float | str | None:
         """Return the state of the sensor."""
         return self.entity_description.value_fn(self.coordinator.data)
 
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        if not super().available:
-            return False
-        return self.entity_description.value_fn(self.coordinator.data) is not None

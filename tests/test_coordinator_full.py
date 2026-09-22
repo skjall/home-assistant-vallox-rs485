@@ -130,71 +130,62 @@ class TestCoordinatorAsyncUpdateData:
                 hass, serial_port="/dev/ttyUSB0"
             )
             coordinator._ensure_connected = AsyncMock()
-            coordinator._poll_registers = AsyncMock()
+            coordinator._poll_missing_registers = AsyncMock()
 
             result = await coordinator._async_update_data()
 
             assert isinstance(result, ValloxState)
             coordinator._ensure_connected.assert_called_once()
-            coordinator._poll_registers.assert_called_once()
+            coordinator._poll_missing_registers.assert_called_once()
 
 
 class TestCoordinatorConnection:
     """Tests for connection management methods."""
 
     @pytest.mark.asyncio
-    async def test_ensure_connected_opens_serial(
-        self, hass: HomeAssistant
-    ) -> None:
-        """Test _ensure_connected opens serial when not connected."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            coordinator._serial = None
+    async def test_ensure_connected_opens_serial(self, hass: HomeAssistant) -> None:
+        """With no reader and no writer, the port is opened."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        coordinator._reader = None
+        coordinator._writer = None
+        coordinator._open_serial = AsyncMock()
 
-            with patch.object(
-                hass, "async_add_executor_job", new_callable=AsyncMock
-            ) as mock_executor:
-                await coordinator._ensure_connected()
-                mock_executor.assert_called_once()
+        await coordinator._ensure_connected()
+
+        coordinator._open_serial.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_ensure_connected_when_closed(
+    async def test_ensure_connected_leaves_an_open_port_alone(
         self, hass: HomeAssistant
     ) -> None:
-        """Test _ensure_connected opens serial when closed."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            mock_serial = MagicMock()
-            mock_serial.is_open = False
-            coordinator._serial = mock_serial
+        """An open port is not reopened on every update."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        coordinator._reader = MagicMock()
+        coordinator._writer = MagicMock()
+        coordinator._open_serial = AsyncMock()
 
-            with patch.object(
-                hass, "async_add_executor_job", new_callable=AsyncMock
-            ) as mock_executor:
-                await coordinator._ensure_connected()
-                mock_executor.assert_called_once()
+        await coordinator._ensure_connected()
 
-    def test_open_serial(self, hass: HomeAssistant) -> None:
-        """Test _open_serial creates serial connection."""
-        mock_serial_instance = MagicMock()
+        coordinator._open_serial.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_open_serial(self, hass: HomeAssistant) -> None:
+        """Opening keeps both ends and starts the listener."""
+        reader, writer = MagicMock(), MagicMock()
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        coordinator._start_bus_listener = MagicMock()
 
         with patch(
-            "custom_components.vallox_rs485.coordinator.serial.Serial",
-            return_value=mock_serial_instance
-        ) as mock_serial_class:
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            coordinator._open_serial()
+            "custom_components.vallox_rs485.coordinator."
+            "serial_asyncio_fast.open_serial_connection",
+            new=AsyncMock(return_value=(reader, writer)),
+        ) as opened:
+            await coordinator._open_serial()
 
-            mock_serial_class.assert_called_once()
-            mock_serial_instance.reset_input_buffer.assert_called_once()
-            mock_serial_instance.reset_output_buffer.assert_called_once()
-            assert coordinator._serial is mock_serial_instance
+        assert opened.await_args.kwargs["url"] == "/dev/ttyUSB0"
+        assert coordinator._reader is reader
+        assert coordinator._writer is writer
+        coordinator._start_bus_listener.assert_called_once()
 
 
 class TestCoordinatorPolling:
@@ -202,17 +193,16 @@ class TestCoordinatorPolling:
 
     @pytest.mark.asyncio
     async def test_poll_registers(self, hass: HomeAssistant) -> None:
-        """Test _poll_registers calls read and poll_missing."""
+        """An update polls whatever has not been seen yet."""
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
             coordinator = ValloxCoordinator(
                 hass, serial_port="/dev/ttyUSB0"
             )
             coordinator._poll_missing_registers = AsyncMock()
+            coordinator._ensure_connected = AsyncMock()
 
-            with patch.object(
-                hass, "async_add_executor_job", new_callable=AsyncMock
-            ):
-                await coordinator._poll_registers()
+            if True:
+                await coordinator._async_update_data()
                 coordinator._poll_missing_registers.assert_called_once()
 
     @pytest.mark.asyncio
@@ -293,70 +283,51 @@ class TestCoordinatorPolling:
                 hass, serial_port="/dev/ttyUSB0"
             )
             coordinator._ensure_connected = AsyncMock()
+            coordinator._send_telegram = AsyncMock()
 
-            with patch.object(
-                hass, "async_add_executor_job", new_callable=AsyncMock
-            ) as mock_executor:
+            with patch("asyncio.sleep", new=AsyncMock()):
                 await coordinator._request_register(REG_FAN_SPEED)
 
-                coordinator._ensure_connected.assert_called_once()
-                assert mock_executor.call_count >= 1
+            telegram = coordinator._send_telegram.await_args.args[0]
+            assert telegram.register == 0x00
+            assert telegram.value == REG_FAN_SPEED
 
 
-class TestCoordinatorReadBusTraffic:
-    """Tests for _read_bus_traffic method."""
+class TestCoordinatorBusListener:
+    """Tests for the background reader."""
 
-    def test_read_bus_traffic_no_serial(self, hass: HomeAssistant) -> None:
-        """Test _read_bus_traffic returns early when serial is None."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            coordinator._serial = None
+    @pytest.mark.asyncio
+    async def test_listener_waits_while_the_port_is_closed(
+        self, hass: HomeAssistant
+    ) -> None:
+        """Without a reader the loop idles instead of spinning."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        coordinator._reader = None
 
-            # Should not raise
-            coordinator._read_bus_traffic()
+        with patch("asyncio.sleep", new=AsyncMock(side_effect=asyncio.CancelledError)):
+            await coordinator._bus_listener()
 
-    def test_read_bus_traffic_with_data(self, hass: HomeAssistant) -> None:
-        """Test _read_bus_traffic reads and parses data."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            mock_serial = MagicMock()
+    @pytest.mark.asyncio
+    async def test_listener_parses_what_it_reads(self, hass: HomeAssistant) -> None:
+        """Bytes off the bus go to the parser."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+        telegram = ValloxTelegram(
+            domain=0x01,
+            sender=ADDR_MAINBOARD,
+            receiver=0x22,
+            register=REG_FAN_SPEED,
+            value=0x0F,
+        )
+        data = telegram.to_bytes()
+        reader = MagicMock()
+        reader.read = AsyncMock(side_effect=[data, asyncio.CancelledError])
+        coordinator._reader = reader
 
-            # Create valid telegram data
-            telegram = ValloxTelegram(
-                domain=0x01,
-                sender=ADDR_MAINBOARD,
-                receiver=0x22,
-                register=REG_FAN_SPEED,
-                value=0x0F,
-            )
-            data = telegram.to_bytes()
+        with patch.object(coordinator, "_parse_buffer", return_value=b"") as parsed:
+            await coordinator._bus_listener()
 
-            # Mock in_waiting to return data then 0
-            mock_serial.in_waiting = len(data)
-            mock_serial.read.return_value = data
-            coordinator._serial = mock_serial
-
-            with patch.object(coordinator, "_parse_buffer") as mock_parse:
-                coordinator._read_bus_traffic()
-                mock_parse.assert_called_once()
-
-    def test_read_bus_traffic_timeout(self, hass: HomeAssistant) -> None:
-        """Test _read_bus_traffic handles timeout."""
-        with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
-            mock_serial = MagicMock()
-            # Always return no data
-            type(mock_serial).in_waiting = PropertyMock(return_value=0)
-            coordinator._serial = mock_serial
-
-            with patch("time.sleep"):
-                coordinator._read_bus_traffic()
+        parsed.assert_called_once()
+        assert parsed.call_args.args[0] == data
 
 
 class TestCoordinatorParseBuffer:
@@ -856,14 +827,13 @@ class TestCoordinatorCommands:
                 hass, serial_port="/dev/ttyUSB0"
             )
             coordinator._ensure_connected = AsyncMock()
+            coordinator._send_telegram = AsyncMock()
 
-            with patch.object(
-                hass, "async_add_executor_job", new_callable=AsyncMock
-            ) as mock_executor:
-                await coordinator._send_command(REG_FAN_SPEED, 0x0F)
+            await coordinator._send_command(REG_FAN_SPEED, 0x0F)
 
-                coordinator._ensure_connected.assert_called_once()
-                mock_executor.assert_called_once()
+            telegram = coordinator._send_telegram.await_args.args[0]
+            assert telegram.register == REG_FAN_SPEED
+            assert telegram.value == 0x0F
 
     @pytest.mark.asyncio
     async def test_set_select_bit_on(self, hass: HomeAssistant) -> None:

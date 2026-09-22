@@ -8,9 +8,10 @@ from datetime import timedelta
 
 import serial
 import serial.tools.list_ports
-import serial_asyncio
+import serial_asyncio_fast
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -152,7 +153,11 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         self._serial_port = serial_port
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
+        # Guards the writer. Never taken around a call that writes again:
+        # asyncio.Lock is not reentrant.
         self._lock = asyncio.Lock()
+        # Guards read-modify-write on SELECT, which spans two awaits.
+        self._select_lock = asyncio.Lock()
         self._state = ValloxState()
         self._last_unavailable_log: float = 0
         self._device_address = device_address
@@ -245,7 +250,7 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
     async def _open_serial(self) -> None:
         """Open async serial connection."""
         _LOGGER.debug("Opening serial port %s", self._serial_port)
-        self._reader, self._writer = await serial_asyncio.open_serial_connection(
+        self._reader, self._writer = await serial_asyncio_fast.open_serial_connection(
             url=self._serial_port,
             baudrate=DEFAULT_BAUDRATE,
             bytesize=serial.EIGHTBITS,
@@ -355,7 +360,7 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         """Send a telegram to the bus."""
         await self._ensure_connected()
         if self._writer is None:
-            raise serial.SerialException("Serial port not open")
+            raise HomeAssistantError(translation_key="not_connected")
 
         data = telegram.to_bytes()
         _LOGGER.debug(
@@ -364,8 +369,11 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         )
 
         async with self._lock:
-            self._writer.write(data)
-            await self._writer.drain()
+            try:
+                self._writer.write(data)
+                await self._writer.drain()
+            except (serial.SerialException, OSError) as err:
+                raise HomeAssistantError(translation_key="command_failed") from err
 
     def _process_telegram(self, telegram: ValloxTelegram) -> None:
         """Process a received telegram and update state."""
@@ -478,14 +486,16 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         await self._send_telegram(telegram)
 
     async def _set_select_bit(self, bit: int, state: bool) -> None:
-        """Set a single bit in the SELECT register."""
-        async with self._lock:
+        """Set a single bit in the SELECT register.
+
+        SELECT holds several independent switches, so a write has to start
+        from the value currently on the bus. Until one has been seen there is
+        nothing to modify, and writing a guess would silently flip whatever
+        else lives in that register.
+        """
+        async with self._select_lock:
             if REG_SELECT not in self._state._raw_values:
-                _LOGGER.warning(
-                    "Cannot modify SELECT register - current value unknown. "
-                    "Wait for bus data before sending commands."
-                )
-                return
+                raise HomeAssistantError(translation_key="select_unknown")
             current = self._state._raw_values[REG_SELECT]
             if state:
                 new_value = current | (1 << bit)
@@ -575,10 +585,15 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
         """Check if any of the given registers have been seen."""
         return any(r in self._seen_registers for r in registers)
 
-    async def async_wait_for_initial_data(self, timeout: float = 10.0) -> None:
-        """Wait for initial data from the bus before entity setup."""
+    async def async_wait_for_initial_data(self, timeout: float = 10.0) -> bool:
+        """Wait for the first registers to arrive; report whether they did.
+
+        The unit talks when it wants to, so the first telegram can be seconds
+        away. Reporting the outcome rather than logging it lets setup fail
+        properly instead of creating entities that will never have a value.
+        """
         if self._seen_registers:
-            return
+            return True
 
         _LOGGER.debug("Waiting for initial bus data (timeout: %.1fs)", timeout)
         start = time.monotonic()
@@ -586,12 +601,9 @@ class ValloxCoordinator(DataUpdateCoordinator[ValloxState]):
             await self.async_request_refresh()
             if self._seen_registers:
                 _LOGGER.debug("Initial data received: %d registers", len(self._seen_registers))
-                return
+                return True
             await asyncio.sleep(1.0)
-        _LOGGER.warning(
-            "Timeout waiting for initial data, proceeding with %d registers",
-            len(self._seen_registers)
-        )
+        return False
 
     async def async_shutdown(self) -> None:
         """Shutdown the coordinator."""

@@ -99,9 +99,8 @@ class TestValloxSensorEntity:
         for desc in SENSOR_DESCRIPTIONS:
             if desc.key == "temp_outside":
                 sensor = ValloxSensor(mock_coordinator, desc, mock_entry)
-                # Mock super().available to return True
-                with patch.object(type(sensor).__bases__[0], 'available', new_callable=lambda: property(lambda self: True)):
-                    assert sensor.available is True
+                mock_coordinator.last_update_success = True
+                assert sensor.available is True
                 break
 
     def test_sensor_available_without_value(self, mock_coordinator: MagicMock, mock_entry: MagicMock) -> None:
@@ -116,8 +115,8 @@ class TestValloxSensorEntity:
         for desc in SENSOR_DESCRIPTIONS:
             if desc.key == "temp_outside":
                 sensor = ValloxSensor(mock_coordinator, desc, mock_entry)
-                with patch.object(type(sensor).__bases__[0], 'available', new_callable=lambda: property(lambda self: True)):
-                    assert sensor.available is False
+                mock_coordinator.last_update_success = True
+                assert sensor.available is False
                 break
 
 

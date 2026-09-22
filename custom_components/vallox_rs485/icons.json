@@ -29,13 +29,13 @@
         "default": "mdi:molecule-co2"
       },
       "heat_recovery_efficiency": {
-        "default": "mdi:percent"
+        "default": "mdi:heat-wave"
       },
       "last_fault": {
         "default": "mdi:alert-circle"
       },
       "fireplace_countdown": {
-        "default": "mdi:timer"
+        "default": "mdi:fireplace"
       },
       "post_heating_on_counter": {
         "default": "mdi:counter"
@@ -71,7 +71,7 @@
         }
       },
       "damper_motor_position": {
-        "default": "mdi:valve",
+        "default": "mdi:swap-horizontal",
         "state": {
           "on": "mdi:valve-open",
           "off": "mdi:valve-closed"
@@ -104,6 +104,12 @@
           "on": "mdi:radiator",
           "off": "mdi:radiator-off"
         }
+      },
+      "remote_control_working": {
+        "default": "mdi:remote"
+      },
+      "fireplace_boost_active": {
+        "default": "mdi:fireplace"
       }
     },
     "switch": {
@@ -133,16 +139,16 @@
         "default": "mdi:thermometer"
       },
       "preheating_setpoint": {
-        "default": "mdi:thermometer"
+        "default": "mdi:thermometer-low"
       },
       "bypass_setpoint": {
-        "default": "mdi:thermometer"
+        "default": "mdi:thermometer-chevron-up"
       },
       "input_fan_stop_threshold": {
         "default": "mdi:snowflake-alert"
       },
       "cell_defrost_setpoint": {
-        "default": "mdi:snowflake-melt"
+        "default": "mdi:snowflake-thermometer"
       },
       "fan_speed_min": {
         "default": "mdi:fan-chevron-down"

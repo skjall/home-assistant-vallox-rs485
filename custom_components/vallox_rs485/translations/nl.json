@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Schrijven naar register {register} mislukt: {error}"
+    },
+    "not_connected": {
+      "message": "De seriële poort is niet geopend, de opdracht is niet verzonden."
+    },
+    "command_failed": {
+      "message": "De opdracht kon niet naar de ventilatie-unit worden geschreven."
+    },
+    "select_unknown": {
+      "message": "Er is nog geen waarde van het apparaat gelezen, dus deze schakelaar kan niet worden gewijzigd. Wacht op de volgende update en probeer het opnieuw."
+    },
+    "no_bus_data": {
+      "message": "Er zijn nog geen gegevens van de ventilatie-unit ontvangen. Controleer de RS485-bedrading en het apparaatadres."
     }
   }
 }

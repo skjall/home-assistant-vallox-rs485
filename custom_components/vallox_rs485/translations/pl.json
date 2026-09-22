@@ -202,6 +202,18 @@
     },
     "write_failed": {
       "message": "Failed to write to register {register}: {error}"
+    },
+    "not_connected": {
+      "message": "Port szeregowy nie jest otwarty, polecenie nie zostało wysłane."
+    },
+    "command_failed": {
+      "message": "Nie udało się zapisać polecenia w centrali wentylacyjnej."
+    },
+    "select_unknown": {
+      "message": "Z urządzenia nie odczytano jeszcze żadnej wartości, więc tego przełącznika nie można zmienić. Poczekaj na następną aktualizację i spróbuj ponownie."
+    },
+    "no_bus_data": {
+      "message": "Z centrali wentylacyjnej nie nadeszły jeszcze żadne dane. Sprawdź okablowanie RS485 i adres urządzenia."
     }
   }
 }
