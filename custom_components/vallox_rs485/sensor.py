@@ -1,8 +1,9 @@
 """Sensor entities for Vallox RS485."""
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -12,32 +13,32 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
-    EntityCategory,
     PERCENTAGE,
+    EntityCategory,
     UnitOfTemperature,
     UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from vallox_rs485_protocol import ValloxState
 
 from . import ValloxConfigEntry
 from .const import (
-    REQ_TEMP_OUTSIDE,
-    REQ_TEMP_EXHAUST,
-    REQ_TEMP_INSIDE,
-    REQ_TEMP_INCOMING,
+    REQ_CO2,
+    REQ_FAN_SPEED,
+    REQ_FIREPLACE_COUNTDOWN,
     REQ_HUMIDITY,
     REQ_HUMIDITY_SENSOR1,
     REQ_HUMIDITY_SENSOR2,
-    REQ_CO2,
-    REQ_FAN_SPEED,
     REQ_LAST_FAULT,
-    REQ_FIREPLACE_COUNTDOWN,
     REQ_POST_HEATING_CNT,
+    REQ_TEMP_EXHAUST,
+    REQ_TEMP_INCOMING,
+    REQ_TEMP_INSIDE,
+    REQ_TEMP_OUTSIDE,
 )
 from .coordinator import ValloxCoordinator
 from .entity import ValloxDescribedEntity
-from .vallox_protocol import ValloxState
 
 # The coordinator owns the bus; entities never reach it in parallel.
 PARALLEL_UPDATES = 1
@@ -65,7 +66,7 @@ def _calculate_efficiency(state: ValloxState) -> int | None:
         return 0
 
     efficiency = ((state.temp_incoming - state.temp_outside) / temp_diff) * 100
-    return max(0, min(100, int(round(efficiency))))
+    return max(0, min(100, round(efficiency)))
 
 
 SENSOR_DESCRIPTIONS: tuple[ValloxSensorEntityDescription, ...] = (
@@ -193,9 +194,9 @@ async def async_setup_entry(
 
     entities = []
     for description in SENSOR_DESCRIPTIONS:
-        if description.required_registers is None:
-            entities.append(ValloxSensor(coordinator, description, entry))
-        elif coordinator.has_seen_any_register(description.required_registers):
+        if description.required_registers is None or coordinator.has_seen_any_register(
+            description.required_registers
+        ):
             entities.append(ValloxSensor(coordinator, description, entry))
 
     async_add_entities(entities)
@@ -220,4 +221,3 @@ class ValloxSensor(ValloxDescribedEntity, SensorEntity):
     def native_value(self) -> int | float | str | None:
         """Return the state of the sensor."""
         return self.entity_description.value_fn(self.coordinator.data)
-

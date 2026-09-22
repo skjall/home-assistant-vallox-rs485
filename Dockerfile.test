@@ -9,6 +9,11 @@ COPY requirements-test.txt scripts/ha_test_requirements.py /tmp/setup/
 # copying it alone means a code change does not rebuild the whole image.
 COPY custom_components/*/manifest.json /tmp/setup/
 
+# The package this repository builds itself, so it is installed from here
+# rather than from PyPI: the published version is the one before the change
+# under test, and during a release it does not exist yet at all.
+COPY lib/ /tmp/setup/lib/
+
 # What the integration imports, and what the Home Assistant components it
 # depends on need, both read from files that already exist; see the script for
 # why none of it is pinned by hand.

@@ -1,39 +1,41 @@
 """Tests for Vallox RS485 coordinator logic."""
+
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
 import asyncio
+import contextlib
+from unittest.mock import MagicMock, patch
 
 import pytest
-
-from custom_components.vallox_rs485.vallox_protocol import (
+from vallox_rs485_protocol import (
     ValloxState,
     ValloxTelegram,
 )
+
 from custom_components.vallox_rs485.const import (
-    REG_FAN_SPEED,
-    REG_HUMIDITY,
-    REG_TEMP_OUTSIDE,
-    REG_TEMP_EXHAUST,
-    REG_TEMP_INSIDE,
-    REG_TEMP_INCOMING,
-    REG_SELECT,
-    REG_MULTI_PURPOSE_2,
-    REG_LAST_FAULT,
-    REG_CO2_HIGH,
-    REG_CO2_LOW,
-    REG_HEATING_SETPOINT,
-    REG_FAN_SPEED_MIN,
-    REG_FAN_SPEED_MAX,
-    REG_CELL_DEFROST_SETPOINT,
-    BIT_POWER_STATE,
+    ADDR_MAINBOARD,
     BIT_CO2_ADJUST,
-    BIT_RH_ADJUST,
-    BIT_HEATING_STATE,
-    BIT_SUPPLY_FAN,
     BIT_EXHAUST_FAN,
     BIT_FAULT_SIGNAL,
-    ADDR_MAINBOARD,
+    BIT_HEATING_STATE,
+    BIT_POWER_STATE,
+    BIT_RH_ADJUST,
+    BIT_SUPPLY_FAN,
+    REG_CELL_DEFROST_SETPOINT,
+    REG_CO2_HIGH,
+    REG_CO2_LOW,
+    REG_FAN_SPEED,
+    REG_FAN_SPEED_MAX,
+    REG_FAN_SPEED_MIN,
+    REG_HEATING_SETPOINT,
+    REG_HUMIDITY,
+    REG_LAST_FAULT,
+    REG_MULTI_PURPOSE_2,
+    REG_SELECT,
+    REG_TEMP_EXHAUST,
+    REG_TEMP_INCOMING,
+    REG_TEMP_INSIDE,
+    REG_TEMP_OUTSIDE,
 )
 from custom_components.vallox_rs485.coordinator import POLL_REGISTERS, get_serial_ports
 
@@ -417,7 +419,7 @@ class TestBufferParsing:
 
     def test_parse_buffer_invalid_domain(self) -> None:
         """Test parsing buffer with invalid domain byte."""
-        buffer = b"\x02\x11\x22\x29\x0F\x6D"
+        buffer = b"\x02\x11\x22\x29\x0f\x6d"
 
         telegrams = _parse_buffer(buffer)
         assert len(telegrams) == 0
@@ -435,25 +437,26 @@ class TestBufferParsing:
 
 def _process_telegram_to_state(state: ValloxState, telegram: ValloxTelegram) -> None:
     """Process a telegram and update state (extracted logic from coordinator)."""
-    from custom_components.vallox_rs485.vallox_protocol import (
-        ntc_to_celsius,
-        decode_fan_speed,
-        decode_humidity,
-        decode_fault,
+    from vallox_rs485_protocol import (
         decode_cell_defrost,
+        decode_fan_speed,
+        decode_fault,
+        decode_humidity,
+        ntc_to_celsius,
     )
+
     from custom_components.vallox_rs485.const import (
-        REG_TEMP_OUTSIDE_LEGACY,
-        REG_TEMP_INSIDE_LEGACY,
-        REG_TEMP_INCOMING_LEGACY,
-        REG_TEMP_EXHAUST_LEGACY,
-        BIT_FILTER_GUARD,
-        BIT_HEATING_INDICATOR,
-        BIT_FAULT_INDICATOR,
-        BIT_SERVICE_REMINDER,
         BIT_DAMPER_MOTOR,
-        BIT_PRE_HEATING,
+        BIT_FAULT_INDICATOR,
+        BIT_FILTER_GUARD,
         BIT_FIREPLACE_BOOSTER,
+        BIT_HEATING_INDICATOR,
+        BIT_PRE_HEATING,
+        BIT_SERVICE_REMINDER,
+        REG_TEMP_EXHAUST_LEGACY,
+        REG_TEMP_INCOMING_LEGACY,
+        REG_TEMP_INSIDE_LEGACY,
+        REG_TEMP_OUTSIDE_LEGACY,
     )
 
     if telegram.sender not in (ADDR_MAINBOARD, 0x21):
@@ -512,7 +515,7 @@ def _process_telegram_to_state(state: ValloxState, telegram: ValloxTelegram) -> 
 
 def _parse_buffer(buffer: bytes) -> list[ValloxTelegram]:
     """Parse telegrams from buffer (extracted logic from coordinator)."""
-    from custom_components.vallox_rs485.vallox_protocol import TELEGRAM_LENGTH
+    from vallox_rs485_protocol import TELEGRAM_LENGTH
 
     telegrams = []
     pos = 0
@@ -539,7 +542,7 @@ class TestValloxCoordinatorClass:
     @pytest.fixture
     def mock_coordinator(self) -> MagicMock:
         """Create a mock coordinator for testing individual methods."""
-        from custom_components.vallox_rs485.vallox_protocol import ValloxState
+        from vallox_rs485_protocol import ValloxState
 
         coordinator = MagicMock()
         coordinator._serial_port = "/dev/ttyUSB0"
@@ -585,10 +588,8 @@ class TestValloxCoordinatorClass:
         mock_serial.close.side_effect = Exception("Close failed")
 
         # Should not raise
-        try:
+        with contextlib.suppress(Exception):
             mock_serial.close()
-        except Exception:
-            pass  # Expected to be caught
 
     def test_log_unavailable_rate_limiting_logic(self) -> None:
         """Test _log_unavailable rate limiting logic."""
@@ -609,7 +610,7 @@ class TestValloxCoordinatorClass:
         assert should_log_2 is False
 
     def test_parse_buffer_logic(self) -> None:
-        """Test _parse_buffer method logic using the already tested _parse_buffer function."""
+        """Test _parse_buffer through the already tested module function."""
         telegram = ValloxTelegram(
             domain=0x01,
             sender=ADDR_MAINBOARD,
@@ -675,7 +676,7 @@ class TestValloxCoordinatorClass:
     @pytest.mark.asyncio
     async def test_async_set_fan_speed_logic(self) -> None:
         """Test async_set_fan_speed validation logic."""
-        from custom_components.vallox_rs485.vallox_protocol import (
+        from vallox_rs485_protocol import (
             encode_fan_speed,
             validate_fan_speed,
         )
@@ -695,8 +696,7 @@ class TestValloxCoordinatorClass:
     @pytest.mark.asyncio
     async def test_async_set_heating_setpoint_logic(self) -> None:
         """Test async_set_heating_setpoint validation logic."""
-        from custom_components.vallox_rs485.vallox_protocol import (
-            celsius_to_ntc,
+        from vallox_rs485_protocol import (
             validate_temperature_setpoint,
         )
 
@@ -717,7 +717,7 @@ class TestValloxCoordinatorClass:
     @pytest.mark.asyncio
     async def test_async_set_service_reminder_logic(self) -> None:
         """Test async_set_service_reminder validation logic."""
-        from custom_components.vallox_rs485.vallox_protocol import validate_service_months
+        from vallox_rs485_protocol import validate_service_months
 
         # Test normal value
         months = validate_service_months(6)
@@ -733,7 +733,7 @@ class TestValloxCoordinatorClass:
     @pytest.mark.asyncio
     async def test_async_set_co2_setpoint_logic(self) -> None:
         """Test async_set_co2_setpoint validation and encoding logic."""
-        from custom_components.vallox_rs485.vallox_protocol import (
+        from vallox_rs485_protocol import (
             encode_co2_setpoint,
             validate_co2_setpoint,
         )
@@ -755,7 +755,7 @@ class TestValloxCoordinatorClass:
     @pytest.mark.asyncio
     async def test_set_select_bit_logic(self) -> None:
         """Test _set_select_bit logic."""
-        from custom_components.vallox_rs485.const import BIT_POWER_STATE, REG_SELECT
+        from custom_components.vallox_rs485.const import BIT_POWER_STATE
 
         # Starting value
         current = 0x00

@@ -15,11 +15,11 @@ import pytest
 import serial
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
+from vallox_rs485_protocol import create_read_request
 
 from custom_components.vallox_rs485.const import BIT_POWER_STATE, REG_SELECT
 from custom_components.vallox_rs485.coordinator import ValloxCoordinator
 from custom_components.vallox_rs485.entity import ValloxDescribedEntity, ValloxEntity
-from custom_components.vallox_rs485.vallox_protocol import create_read_request
 
 
 def _connected(coordinator: ValloxCoordinator) -> MagicMock:
@@ -164,3 +164,81 @@ class TestEntityAvailability:
         entity = ValloxEntity(MagicMock(), "entry-id", "Kitchen unit", "fan")
 
         assert entity.unique_id == "entry-id_fan"
+
+
+class TestRepairIssues:
+    """A bus that keeps failing should say so where the user looks."""
+
+    def _coordinator(self, hass: HomeAssistant) -> ValloxCoordinator:
+        return ValloxCoordinator(hass, serial_port="/dev/ttyUSB0", entry_id="entry-id")
+
+    def test_one_failure_raises_no_issue(self, hass: HomeAssistant) -> None:
+        """A single hiccup on a quiet bus is not worth a repair notice."""
+        coordinator = self._coordinator(hass)
+
+        with patch(
+            "custom_components.vallox_rs485.coordinator.ir.async_create_issue"
+        ) as created:
+            coordinator._handle_error("communication_timeout")
+
+        created.assert_not_called()
+
+    def test_three_failures_raise_one(self, hass: HomeAssistant) -> None:
+        """Persistent silence does, and only once."""
+        coordinator = self._coordinator(hass)
+
+        with patch(
+            "custom_components.vallox_rs485.coordinator.ir.async_create_issue"
+        ) as created:
+            for _ in range(4):
+                coordinator._handle_error("serial_connection_failed")
+
+        created.assert_called_once()
+        assert created.call_args.kwargs["translation_key"] == (
+            "serial_connection_failed"
+        )
+        assert coordinator._repair_issue_created is True
+
+    def test_a_working_bus_clears_the_issue(self, hass: HomeAssistant) -> None:
+        """Once telegrams arrive again, the notice goes away."""
+        coordinator = self._coordinator(hass)
+
+        with patch("custom_components.vallox_rs485.coordinator.ir.async_create_issue"):
+            for _ in range(3):
+                coordinator._handle_error("communication_timeout")
+
+        with patch(
+            "custom_components.vallox_rs485.coordinator.ir.async_delete_issue"
+        ) as deleted:
+            coordinator._clear_error_state()
+
+        assert deleted.call_count == 2
+        assert coordinator._consecutive_errors == 0
+        assert coordinator._repair_issue_created is False
+
+    def test_without_an_entry_there_is_nowhere_to_put_it(
+        self, hass: HomeAssistant
+    ) -> None:
+        """A coordinator built outside a config entry stays quiet."""
+        coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
+
+        with patch(
+            "custom_components.vallox_rs485.coordinator.ir.async_create_issue"
+        ) as created:
+            coordinator._create_repair_issue("communication_timeout")
+            coordinator._delete_repair_issue()
+
+        created.assert_not_called()
+
+    def test_the_unavailable_log_is_rate_limited(self, hass: HomeAssistant) -> None:
+        """A device that is away for hours must not fill the log."""
+        coordinator = self._coordinator(hass)
+        coordinator._last_unavailable_log = 0
+
+        with patch(
+            "custom_components.vallox_rs485.coordinator._LOGGER.warning"
+        ) as warned:
+            coordinator._log_unavailable("gone")
+            coordinator._log_unavailable("still gone")
+
+        warned.assert_called_once_with("gone")

@@ -1,3 +1,37 @@
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+  "E", "W",    # pycodestyle
+  "F",         # pyflakes
+  "I",         # import order
+  "UP",        # pyupgrade
+  "B",         # bugbear
+  "SIM",       # simplify
+  "RUF",       # ruff
+  "D",         # docstrings
+  "ASYNC",     # async pitfalls
+  "TRY",       # exception handling
+]
+ignore = [
+  "D203",      # conflicts with D211
+  "D213",      # conflicts with D212
+  "TRY003",    # messages live in strings.json, not in the raise
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests say what they check in their name; the package has its own tests too.
+"**/tests/*" = ["D", "SLF001"]
+"scripts/*" = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:"]
+
 [tool.ha_standards]
 # Defaults apply when a key is absent; write one down only when this
 # project genuinely differs. See the standards document for what each

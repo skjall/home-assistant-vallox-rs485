@@ -1,8 +1,9 @@
 """Number entities for Vallox RS485."""
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from homeassistant.components.number import (
     NumberDeviceClass,
@@ -13,23 +14,23 @@ from homeassistant.components.number import (
 from homeassistant.const import EntityCategory, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from vallox_rs485_protocol import ValloxState
 
 from . import ValloxConfigEntry
 from .const import (
-    REQ_HEATING_SETPOINT,
-    REQ_PREHEATING_SETPOINT,
     REQ_BYPASS_SETPOINT,
-    REQ_INPUT_FAN_STOP,
     REQ_CELL_DEFROST,
-    REQ_FAN_SPEED_MIN,
-    REQ_FAN_SPEED_MAX,
-    REQ_SERVICE_REMINDER,
     REQ_CO2_SETPOINT,
+    REQ_FAN_SPEED_MAX,
+    REQ_FAN_SPEED_MIN,
+    REQ_HEATING_SETPOINT,
     REQ_HUMIDITY_LEVEL,
+    REQ_INPUT_FAN_STOP,
+    REQ_PREHEATING_SETPOINT,
+    REQ_SERVICE_REMINDER,
 )
 from .coordinator import ValloxCoordinator
 from .entity import ValloxDescribedEntity
-from .vallox_protocol import ValloxState
 
 # The coordinator owns the bus; entities never reach it in parallel.
 PARALLEL_UPDATES = 1
@@ -190,9 +191,9 @@ async def async_setup_entry(
 
     entities = []
     for description in NUMBER_DESCRIPTIONS:
-        if description.required_registers is None:
-            entities.append(ValloxNumber(coordinator, description, entry))
-        elif coordinator.has_seen_any_register(description.required_registers):
+        if description.required_registers is None or coordinator.has_seen_any_register(
+            description.required_registers
+        ):
             entities.append(ValloxNumber(coordinator, description, entry))
 
     async_add_entities(entities)
@@ -225,4 +226,3 @@ class ValloxNumber(ValloxDescribedEntity, NumberEntity):
         if method:
             await method(int(value))
         await self.coordinator.async_request_refresh()
-

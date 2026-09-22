@@ -1,4 +1,5 @@
 """Fan entity for Vallox RS485."""
+
 from __future__ import annotations
 
 import math
@@ -35,7 +36,9 @@ class ValloxFan(ValloxEntity, FanEntity):
     _attr_translation_key = "ventilation"
     _attr_supported_features = FanEntityFeature.SET_SPEED | FanEntityFeature.PRESET_MODE
     _attr_speed_count = 8
-    _attr_preset_modes = ["1", "2", "3", "4", "5", "6", "7", "8"]
+    # Home Assistant declares this as an instance attribute, so ClassVar is
+    # not available here; the list is never mutated.
+    _attr_preset_modes = ["1", "2", "3", "4", "5", "6", "7", "8"]  # noqa: RUF012
 
     def __init__(
         self,

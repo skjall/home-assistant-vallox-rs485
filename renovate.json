@@ -3,7 +3,9 @@
   "extends": [
     "config:recommended"
   ],
-  "baseBranches": ["development"],
+  "baseBranches": [
+    "development"
+  ],
   "labels": [
     "dependencies"
   ],
@@ -18,6 +20,13 @@
         "pip_requirements"
       ],
       "groupName": "Python dependencies"
+    },
+    {
+      "description": "release-please raises this package and its pin in one commit; a Renovate PR would race that.",
+      "matchPackageNames": [
+        "vallox-rs485-protocol"
+      ],
+      "enabled": false
     }
   ],
   "schedule": [

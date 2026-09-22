@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vallox-rs485-protocol"
+version = "0.2.0" # x-release-please-version
+description = "Wire protocol of Vallox ventilation units with an RS485 interface"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [{ name = "Jan Großheim" }]
+keywords = ["vallox", "rs485", "ventilation", "hrv", "home-assistant"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Topic :: Home Automation",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/skjall/home-assistant-vallox-rs485"
+Source = "https://github.com/skjall/home-assistant-vallox-rs485/tree/main/lib/vallox_rs485_protocol"
+Issues = "https://github.com/skjall/home-assistant-vallox-rs485/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vallox_rs485_protocol"]
+
+[tool.pytest.ini_options]
+# Without this the repository's own pytest.ini applies here too and asks for
+# coverage of the integration, which this package knows nothing about.
+testpaths = ["tests"]
+addopts = ""

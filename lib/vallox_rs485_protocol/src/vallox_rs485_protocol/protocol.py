@@ -1,18 +1,19 @@
-"""Vallox RS485 protocol implementation."""
+"""Telegrams on the wire: building them, reading them, checking them."""
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
 
 from .const import (
-    VALLOX_DOMAIN,
     ADDR_MAINBOARD,
     ADDR_THIS_DEVICE,
-    NTC_TO_CELSIUS,
     CELSIUS_TO_NTC,
     FAN_SPEED_TO_HEX,
-    HEX_TO_FAN_SPEED,
     FAULT_CODES,
+    HEX_TO_FAN_SPEED,
+    NTC_TO_CELSIUS,
+    VALLOX_DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -55,8 +56,11 @@ class ValloxTelegram:
         )
 
         if not telegram.verify_checksum():
-            _LOGGER.debug("Checksum mismatch: expected %02x, got %02x",
-                         telegram.calculate_checksum(), telegram.checksum)
+            _LOGGER.debug(
+                "Checksum mismatch: expected %02x, got %02x",
+                telegram.calculate_checksum(),
+                telegram.checksum,
+            )
             return None
 
         return telegram
@@ -64,19 +68,22 @@ class ValloxTelegram:
     def to_bytes(self) -> bytes:
         """Convert telegram to bytes."""
         self.checksum = self.calculate_checksum()
-        return bytes([
-            self.domain,
-            self.sender,
-            self.receiver,
-            self.register,
-            self.value,
-            self.checksum,
-        ])
+        return bytes(
+            [
+                self.domain,
+                self.sender,
+                self.receiver,
+                self.register,
+                self.value,
+                self.checksum,
+            ]
+        )
 
     def calculate_checksum(self) -> int:
         """Calculate telegram checksum."""
-        return (self.domain + self.sender + self.receiver +
-                self.register + self.value) & 0xFF
+        return (
+            self.domain + self.sender + self.receiver + self.register + self.value
+        ) & 0xFF
 
     def verify_checksum(self) -> bool:
         """Verify telegram checksum."""
@@ -198,13 +205,13 @@ def decode_humidity(value: int) -> int:
     if value <= 51:
         return 0
     result = (value - 51) / 2.04
-    return max(0, min(100, int(round(result))))
+    return max(0, min(100, round(result)))
 
 
 def encode_humidity(percent: int) -> int:
     """Encode humidity percentage to bus value."""
     percent = max(0, min(100, percent))
-    return int(round(percent * 2.04 + 51))
+    return round(percent * 2.04 + 51)
 
 
 def decode_fault(value: int) -> str:
@@ -241,8 +248,10 @@ def validate_fan_speed(speed: int) -> int:
 
 def validate_temperature_setpoint(temp: int) -> int:
     """Validate and clamp temperature setpoint to valid range."""
-    return max(VALID_TEMPERATURE_SETPOINT_RANGE[0],
-               min(VALID_TEMPERATURE_SETPOINT_RANGE[1], temp))
+    return max(
+        VALID_TEMPERATURE_SETPOINT_RANGE[0],
+        min(VALID_TEMPERATURE_SETPOINT_RANGE[1], temp),
+    )
 
 
 def validate_humidity(humidity: int) -> int:
@@ -257,8 +266,9 @@ def validate_co2_setpoint(ppm: int) -> int:
 
 def validate_service_months(months: int) -> int:
     """Validate and clamp service reminder months."""
-    return max(VALID_SERVICE_MONTHS_RANGE[0],
-               min(VALID_SERVICE_MONTHS_RANGE[1], months))
+    return max(
+        VALID_SERVICE_MONTHS_RANGE[0], min(VALID_SERVICE_MONTHS_RANGE[1], months)
+    )
 
 
 def create_read_request(

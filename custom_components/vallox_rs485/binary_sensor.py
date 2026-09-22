@@ -1,8 +1,9 @@
 """Binary sensor entities for Vallox RS485."""
+
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -12,12 +13,12 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from vallox_rs485_protocol import ValloxState
 
 from . import ValloxConfigEntry
-from .const import REQ_SELECT, REQ_MULTI_PURPOSE_2, REQ_FLAGS_6
+from .const import REQ_FLAGS_6, REQ_MULTI_PURPOSE_2, REQ_SELECT
 from .coordinator import ValloxCoordinator
 from .entity import ValloxDescribedEntity
-from .vallox_protocol import ValloxState
 
 # The coordinator owns the bus; entities never reach it in parallel.
 PARALLEL_UPDATES = 1
@@ -125,9 +126,9 @@ async def async_setup_entry(
 
     entities = []
     for description in BINARY_SENSOR_DESCRIPTIONS:
-        if description.required_registers is None:
-            entities.append(ValloxBinarySensor(coordinator, description, entry))
-        elif coordinator.has_seen_any_register(description.required_registers):
+        if description.required_registers is None or coordinator.has_seen_any_register(
+            description.required_registers
+        ):
             entities.append(ValloxBinarySensor(coordinator, description, entry))
 
     async_add_entities(entities)
@@ -152,4 +153,3 @@ class ValloxBinarySensor(ValloxDescribedEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
         return self.entity_description.value_fn(self.coordinator.data)
-

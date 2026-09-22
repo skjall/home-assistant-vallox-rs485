@@ -1,25 +1,23 @@
 """Integration tests for Vallox RS485 using pytest-homeassistant-custom-component."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
-import asyncio
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.const import Platform
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from vallox_rs485_protocol import ValloxState, create_read_request
 
 from custom_components.vallox_rs485 import (
+    PLATFORMS,
     async_setup_entry,
     async_unload_entry,
-    PLATFORMS,
 )
 from custom_components.vallox_rs485.const import REG_FAN_SPEED
 from custom_components.vallox_rs485.coordinator import ValloxCoordinator
-from custom_components.vallox_rs485.vallox_protocol import create_read_request
-from custom_components.vallox_rs485.vallox_protocol import ValloxState
 
 
 @pytest.fixture
@@ -68,7 +66,9 @@ class TestAsyncSetupEntry:
 
             assert result is True
             mock_coordinator.async_config_entry_first_refresh.assert_called_once()
-            mock_coordinator.async_wait_for_initial_data.assert_called_once_with(timeout=15.0)
+            mock_coordinator.async_wait_for_initial_data.assert_called_once_with(
+                timeout=15.0
+            )
             mock_forward.assert_called_once_with(vallox_config_entry, PLATFORMS)
             assert vallox_config_entry.runtime_data is mock_coordinator
 
@@ -163,9 +163,7 @@ class TestCoordinatorIntegration:
     async def test_coordinator_has_seen_register(self, hass: HomeAssistant) -> None:
         """Test has_seen_register method."""
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
             coordinator._seen_registers = {0x29, 0x2A}
 
             assert coordinator.has_seen_register(0x29) is True
@@ -175,9 +173,7 @@ class TestCoordinatorIntegration:
     async def test_coordinator_has_seen_any_register(self, hass: HomeAssistant) -> None:
         """Test has_seen_any_register method."""
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
             coordinator._seen_registers = {0x29, 0x2A}
 
             assert coordinator.has_seen_any_register((0x29, 0x30)) is True
@@ -199,7 +195,9 @@ class TestCoordinatorIntegration:
         assert coordinator._writer is None
 
     @pytest.mark.asyncio
-    async def test_coordinator_close_serial_exception(self, hass: HomeAssistant) -> None:
+    async def test_coordinator_close_serial_exception(
+        self, hass: HomeAssistant
+    ) -> None:
         """A port that refuses to close still leaves the coordinator closed."""
         coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
         writer = MagicMock()
@@ -215,12 +213,12 @@ class TestCoordinatorIntegration:
     async def test_coordinator_log_unavailable(self, hass: HomeAssistant) -> None:
         """Test _log_unavailable method rate limiting."""
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
             coordinator._last_unavailable_log = 0
 
-            with patch("custom_components.vallox_rs485.coordinator._LOGGER") as mock_logger:
+            with patch(
+                "custom_components.vallox_rs485.coordinator._LOGGER"
+            ) as mock_logger:
                 # First call should log
                 coordinator._log_unavailable("Test error")
                 mock_logger.warning.assert_called_once()
@@ -247,13 +245,12 @@ class TestCoordinatorIntegration:
     @pytest.mark.asyncio
     async def test_coordinator_parse_buffer(self, hass: HomeAssistant) -> None:
         """Test _parse_buffer method."""
-        from custom_components.vallox_rs485.vallox_protocol import ValloxTelegram
-        from custom_components.vallox_rs485.const import REG_FAN_SPEED, ADDR_MAINBOARD
+        from vallox_rs485_protocol import ValloxTelegram
+
+        from custom_components.vallox_rs485.const import ADDR_MAINBOARD, REG_FAN_SPEED
 
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
 
             telegram = ValloxTelegram(
                 domain=0x01,
@@ -272,13 +269,12 @@ class TestCoordinatorIntegration:
     @pytest.mark.asyncio
     async def test_coordinator_process_telegram(self, hass: HomeAssistant) -> None:
         """Test _process_telegram method."""
-        from custom_components.vallox_rs485.vallox_protocol import ValloxTelegram
-        from custom_components.vallox_rs485.const import REG_HUMIDITY, ADDR_MAINBOARD
+        from vallox_rs485_protocol import ValloxTelegram
+
+        from custom_components.vallox_rs485.const import ADDR_MAINBOARD, REG_HUMIDITY
 
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
 
             telegram = ValloxTelegram(
                 domain=0x01,
@@ -294,15 +290,16 @@ class TestCoordinatorIntegration:
             assert coordinator._state.humidity is not None
 
     @pytest.mark.asyncio
-    async def test_coordinator_process_telegram_ignores_unknown(self, hass: HomeAssistant) -> None:
+    async def test_coordinator_process_telegram_ignores_unknown(
+        self, hass: HomeAssistant
+    ) -> None:
         """Test _process_telegram ignores unknown senders."""
-        from custom_components.vallox_rs485.vallox_protocol import ValloxTelegram
+        from vallox_rs485_protocol import ValloxTelegram
+
         from custom_components.vallox_rs485.const import REG_FAN_SPEED
 
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
 
             telegram = ValloxTelegram(
                 domain=0x01,
@@ -348,13 +345,12 @@ class TestCoordinatorIntegration:
     @pytest.mark.asyncio
     async def test_coordinator_async_set_fan_speed(self, hass: HomeAssistant) -> None:
         """Test async_set_fan_speed method."""
+        from vallox_rs485_protocol import encode_fan_speed
+
         from custom_components.vallox_rs485.const import REG_FAN_SPEED
-        from custom_components.vallox_rs485.vallox_protocol import encode_fan_speed
 
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
             coordinator._send_command = AsyncMock()
             coordinator._ensure_connected = AsyncMock()
 
@@ -367,12 +363,10 @@ class TestCoordinatorIntegration:
     @pytest.mark.asyncio
     async def test_coordinator_async_set_power_state(self, hass: HomeAssistant) -> None:
         """Test async_set_power_state method."""
-        from custom_components.vallox_rs485.const import REG_SELECT, BIT_POWER_STATE
+        from custom_components.vallox_rs485.const import BIT_POWER_STATE, REG_SELECT
 
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
             coordinator._send_command = AsyncMock()
             coordinator._ensure_connected = AsyncMock()
             coordinator._state._raw_values[REG_SELECT] = 0x00
@@ -385,15 +379,16 @@ class TestCoordinatorIntegration:
             assert args[1] & (1 << BIT_POWER_STATE)
 
     @pytest.mark.asyncio
-    async def test_coordinator_async_set_heating_setpoint(self, hass: HomeAssistant) -> None:
+    async def test_coordinator_async_set_heating_setpoint(
+        self, hass: HomeAssistant
+    ) -> None:
         """Test async_set_heating_setpoint method."""
+        from vallox_rs485_protocol import celsius_to_ntc
+
         from custom_components.vallox_rs485.const import REG_HEATING_SETPOINT
-        from custom_components.vallox_rs485.vallox_protocol import celsius_to_ntc
 
         with patch("custom_components.vallox_rs485.coordinator.serial.Serial"):
-            coordinator = ValloxCoordinator(
-                hass, serial_port="/dev/ttyUSB0"
-            )
+            coordinator = ValloxCoordinator(hass, serial_port="/dev/ttyUSB0")
             coordinator._send_command = AsyncMock()
             coordinator._ensure_connected = AsyncMock()
 

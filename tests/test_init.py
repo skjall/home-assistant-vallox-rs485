@@ -1,7 +1,6 @@
 """Tests for Vallox RS485 integration module."""
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 
 class TestIntegrationConstants:
@@ -42,7 +41,7 @@ class TestModuleImports:
 
     def test_protocol_import(self) -> None:
         """Test protocol can be imported."""
-        from custom_components.vallox_rs485.vallox_protocol import (
+        from vallox_rs485_protocol import (
             ValloxState,
             ValloxTelegram,
         )
@@ -53,9 +52,9 @@ class TestModuleImports:
     def test_const_import(self) -> None:
         """Test constants can be imported."""
         from custom_components.vallox_rs485.const import (
-            DOMAIN,
-            DEFAULT_SCAN_INTERVAL,
             DEFAULT_BAUDRATE,
+            DEFAULT_SCAN_INTERVAL,
+            DOMAIN,
         )
 
         assert DOMAIN is not None
@@ -69,13 +68,13 @@ class TestRequiredRegisters:
     def test_sensor_required_registers(self) -> None:
         """Test sensor required registers are defined."""
         from custom_components.vallox_rs485.const import (
-            REQ_TEMP_OUTSIDE,
-            REQ_TEMP_EXHAUST,
-            REQ_TEMP_INSIDE,
-            REQ_TEMP_INCOMING,
-            REQ_HUMIDITY,
-            REQ_FAN_SPEED,
             REQ_CO2,
+            REQ_FAN_SPEED,
+            REQ_HUMIDITY,
+            REQ_TEMP_EXHAUST,
+            REQ_TEMP_INCOMING,
+            REQ_TEMP_INSIDE,
+            REQ_TEMP_OUTSIDE,
         )
 
         assert isinstance(REQ_TEMP_OUTSIDE, tuple)

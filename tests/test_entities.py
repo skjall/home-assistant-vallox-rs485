@@ -1,9 +1,9 @@
 """Tests for Vallox RS485 entities."""
+
 from __future__ import annotations
 
 import pytest
-
-from custom_components.vallox_rs485.vallox_protocol import ValloxState
+from vallox_rs485_protocol import ValloxState
 
 
 @pytest.fixture
@@ -48,7 +48,9 @@ class TestSensorDescriptions:
         from custom_components.vallox_rs485.sensor import SENSOR_DESCRIPTIONS
 
         for desc in SENSOR_DESCRIPTIONS:
-            assert desc.required_registers is not None, f"Missing required_registers for {desc.key}"
+            assert desc.required_registers is not None, (
+                f"Missing required_registers for {desc.key}"
+            )
 
 
 class TestBinarySensorDescriptions:
@@ -95,9 +97,7 @@ class TestSwitchDescriptions:
 
         for desc in SWITCH_DESCRIPTIONS:
             value = desc.value_fn(mock_state)
-            if desc.key == "power_state":
-                assert value is True
-            elif desc.key == "heating_state":
+            if desc.key == "power_state" or desc.key == "heating_state":
                 assert value is True
 
     def test_switch_has_turn_functions(self) -> None:

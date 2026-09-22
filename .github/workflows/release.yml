@@ -1,0 +1,83 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.release.outputs.releases_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  # The publishing runs here rather than on a tag push: release-please creates
+  # its tag with the GITHUB_TOKEN, and tags created that way deliberately do
+  # not start further workflows. A tag trigger would simply never fire.
+  # Only relevant once the device protocol lives in lib/ as a package of its
+  # own - which is what the dependency-transparency rule asks for. Until then
+  # there is nothing to build and this job skips itself.
+  build:
+    needs: release-please
+    if: needs.release-please.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Is there a package to publish?
+        id: package
+        run: |
+          if [ -f lib/vallox_rs485_protocol/pyproject.toml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the distribution
+        if: steps.package.outputs.present == 'true'
+        working-directory: lib/vallox_rs485_protocol
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build
+
+      - uses: actions/upload-artifact@v7
+        if: steps.package.outputs.present == 'true'
+        with:
+          name: dist
+          path: lib/vallox_rs485_protocol/dist/
+    outputs:
+      package: ${{ steps.package.outputs.present }}
+
+  publish:
+    needs: build
+    if: needs.build.outputs.package == 'true'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      # Trusted Publishing: PyPI trusts this workflow, so no token is stored
+      # anywhere. That trust is configured once, on pypi.org.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1

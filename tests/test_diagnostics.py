@@ -1,18 +1,19 @@
 """Tests for Vallox RS485 diagnostics."""
+
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import MagicMock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+from vallox_rs485_protocol import ValloxState
 
-from custom_components.vallox_rs485.diagnostics import async_get_config_entry_diagnostics
-from custom_components.vallox_rs485.coordinator import ValloxCoordinator
-from custom_components.vallox_rs485.vallox_protocol import ValloxState
 from custom_components.vallox_rs485.const import REG_FAN_SPEED, REG_HUMIDITY
+from custom_components.vallox_rs485.coordinator import ValloxCoordinator
+from custom_components.vallox_rs485.diagnostics import (
+    async_get_config_entry_diagnostics,
+)
 
 
 @pytest.fixture

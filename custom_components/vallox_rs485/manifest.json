@@ -8,11 +8,10 @@
   "dependencies": [
     "usb"
   ],
-  "documentation": "https://github.com/skjall/homeassistant-vallox-rs485",
-  "homeassistant": "2026.5.0",
+  "documentation": "https://github.com/skjall/home-assistant-vallox-rs485",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/skjall/homeassistant-vallox-rs485/issues",
+  "issue_tracker": "https://github.com/skjall/home-assistant-vallox-rs485/issues",
   "loggers": [
     "serial",
     "serial_asyncio_fast"
@@ -20,7 +19,8 @@
   "quality_scale": "custom",
   "requirements": [
     "pyserial>=3.5",
-    "pyserial-asyncio-fast>=0.14"
+    "pyserial-asyncio-fast>=0.14",
+    "vallox-rs485-protocol==0.2.0"
   ],
   "usb": [
     {

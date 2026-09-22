@@ -1,4 +1,5 @@
 """Config flow for Vallox RS485 integration."""
+
 from __future__ import annotations
 
 import logging
@@ -11,7 +12,6 @@ import serial.tools.list_ports
 import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_NAME
-
 from homeassistant.helpers.service_info.usb import UsbServiceInfo
 
 from .const import (
@@ -127,15 +127,14 @@ def validate_vallox_bus(port: str, timeout: float = 3.0) -> bool:
                 for i in range(len(buffer) - 5):
                     telegram = buffer[i : i + 6]
                     if _is_valid_vallox_telegram(telegram):
-                        ser.close()
                         return True
                 buffer = buffer[-5:]
-
-        ser.close()
-        return False
     except Exception:
-        ser.close()
         return False
+    else:
+        return False
+    finally:
+        ser.close()
 
 
 def _is_valid_vallox_telegram(data: bytes | bytearray) -> bool:
@@ -147,9 +146,7 @@ def _is_valid_vallox_telegram(data: bytes | bytearray) -> bool:
     expected_checksum = sum(data[:5]) & 0xFF
     if data[5] != expected_checksum:
         return False
-    if not (0x10 <= data[1] <= 0x2F and 0x10 <= data[2] <= 0x2F):
-        return False
-    return True
+    return 0x10 <= data[1] <= 0x2F and 0x10 <= data[2] <= 0x2F
 
 
 class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -162,9 +159,7 @@ class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
         self._discovered_port: str | None = None
         self._discovered_name: str | None = None
 
-    async def async_step_usb(
-        self, discovery_info: UsbServiceInfo
-    ) -> ConfigFlowResult:
+    async def async_step_usb(self, discovery_info: UsbServiceInfo) -> ConfigFlowResult:
         """Handle USB discovery."""
         device = discovery_info.device
         vid = discovery_info.vid
@@ -179,9 +174,7 @@ class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
         await self.async_set_unique_id(stable_path)
-        self._abort_if_unique_id_configured(
-            updates={CONF_SERIAL_PORT: stable_path}
-        )
+        self._abort_if_unique_id_configured(updates={CONF_SERIAL_PORT: stable_path})
 
         vid_str = vid.upper() if vid else ""
         pid_str = pid.upper() if pid else ""
@@ -313,10 +306,13 @@ class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
                 timeout=1,
             )
             test_serial.close()
-            return True
         except serial.SerialException as err:
-            _LOGGER.error("Failed to open serial port %s: %s", port, err)
+            # Probing a port the user may simply have picked wrongly: the
+            # traceback an .exception() would print is noise in the log.
+            _LOGGER.debug("Failed to open serial port %s: %s", port, err)
             return False
+        else:
+            return True
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
@@ -343,7 +339,9 @@ class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             )
 
-        current_scan_interval = entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+        current_scan_interval = entry.data.get(
+            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        )
         current_device_address = entry.data.get(
             CONF_DEVICE_ADDRESS, DEFAULT_DEVICE_ADDRESS
         )

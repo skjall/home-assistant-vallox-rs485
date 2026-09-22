@@ -1,0 +1,32 @@
+# Lint, types, tests, coverage, the quality scale, hassfest and HACS all come
+# from the reusable workflow called in quality.yml. What is left here is the
+# one job specific to this repository: the protocol package in lib/.
+name: Protocol package
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "*.md"
+      - "LICENSE"
+  pull_request:
+    branches: [main]
+
+jobs:
+  protocol-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Build and test the protocol package
+        working-directory: lib/vallox_rs485_protocol
+        run: |
+          python -m pip install --upgrade pip build pytest
+          python -m build
+          pip install dist/*.whl
+          pytest -c pyproject.toml tests/

@@ -1,14 +1,13 @@
 """Fixtures for Vallox RS485 tests."""
+
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
 import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 from homeassistant.core import HomeAssistant
-
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -43,7 +42,7 @@ def mock_serial():
 @pytest.fixture
 def mock_vallox_state():
     """Create a mock ValloxState with sample data."""
-    from custom_components.vallox_rs485.vallox_protocol import ValloxState
+    from vallox_rs485_protocol import ValloxState
 
     state = ValloxState()
     state.temp_outside = 10
@@ -69,7 +68,7 @@ def mock_coordinator(hass: HomeAssistant, mock_vallox_state):
     """Create a mock coordinator."""
     from custom_components.vallox_rs485.coordinator import ValloxCoordinator
 
-    with patch.object(ValloxCoordinator, '__init__', lambda *args, **kwargs: None):
+    with patch.object(ValloxCoordinator, "__init__", lambda *args, **kwargs: None):
         coordinator = ValloxCoordinator.__new__(ValloxCoordinator)
         coordinator.hass = hass
         coordinator.data = mock_vallox_state

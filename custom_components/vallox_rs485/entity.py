@@ -20,10 +20,10 @@ from collections.abc import Callable
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from vallox_rs485_protocol import ValloxState
 
 from .const import DOMAIN
 from .coordinator import ValloxCoordinator
-from .vallox_protocol import ValloxState
 
 
 class ValloxEntity(CoordinatorEntity[ValloxCoordinator]):
