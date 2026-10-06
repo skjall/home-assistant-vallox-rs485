@@ -3,17 +3,9 @@
   "extends": [
     "config:recommended"
   ],
-  "baseBranches": [
-    "development"
-  ],
   "labels": [
     "dependencies"
   ],
-  "pip_requirements": {
-    "managerFilePatterns": [
-      "/requirements_test\\.txt$/"
-    ]
-  },
   "packageRules": [
     {
       "matchManagers": [
