@@ -7,9 +7,9 @@ import os
 from pathlib import Path
 from typing import Any
 
+import probatio
 import serial
 import serial.tools.list_ports
-import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_NAME
 from homeassistant.helpers.service_info.usb import UsbServiceInfo
@@ -215,15 +215,15 @@ class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
                 },
             )
 
-        data_schema = vol.Schema(
+        data_schema = probatio.Schema(
             {
-                vol.Optional(CONF_NAME, default="Vallox"): str,
-                vol.Optional(
+                probatio.Optional(CONF_NAME, default="Vallox"): str,
+                probatio.Optional(
                     CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-                ): vol.All(vol.Coerce(int), vol.Range(min=10, max=300)),
-                vol.Optional(
+                ): probatio.All(probatio.Coerce(int), probatio.Range(min=10, max=300)),
+                probatio.Optional(
                     CONF_DEVICE_ADDRESS, default=DEFAULT_DEVICE_ADDRESS
-                ): vol.In(DEVICE_ADDRESS_OPTIONS),
+                ): probatio.In(DEVICE_ADDRESS_OPTIONS),
             }
         )
 
@@ -278,16 +278,16 @@ class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
                         },
                     )
 
-        data_schema = vol.Schema(
+        data_schema = probatio.Schema(
             {
-                vol.Required(CONF_SERIAL_PORT): vol.In(ports),
-                vol.Optional(CONF_NAME, default="Vallox"): str,
-                vol.Optional(
+                probatio.Required(CONF_SERIAL_PORT): probatio.In(ports),
+                probatio.Optional(CONF_NAME, default="Vallox"): str,
+                probatio.Optional(
                     CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-                ): vol.All(vol.Coerce(int), vol.Range(min=10, max=300)),
-                vol.Optional(
+                ): probatio.All(probatio.Coerce(int), probatio.Range(min=10, max=300)),
+                probatio.Optional(
                     CONF_DEVICE_ADDRESS, default=DEFAULT_DEVICE_ADDRESS
-                ): vol.In(DEVICE_ADDRESS_OPTIONS),
+                ): probatio.In(DEVICE_ADDRESS_OPTIONS),
             }
         )
 
@@ -346,14 +346,14 @@ class ValloxRS485ConfigFlow(ConfigFlow, domain=DOMAIN):
             CONF_DEVICE_ADDRESS, DEFAULT_DEVICE_ADDRESS
         )
 
-        data_schema = vol.Schema(
+        data_schema = probatio.Schema(
             {
-                vol.Optional(
+                probatio.Optional(
                     CONF_SCAN_INTERVAL, default=current_scan_interval
-                ): vol.All(vol.Coerce(int), vol.Range(min=10, max=300)),
-                vol.Optional(
+                ): probatio.All(probatio.Coerce(int), probatio.Range(min=10, max=300)),
+                probatio.Optional(
                     CONF_DEVICE_ADDRESS, default=current_device_address
-                ): vol.In(DEVICE_ADDRESS_OPTIONS),
+                ): probatio.In(DEVICE_ADDRESS_OPTIONS),
             }
         )
 

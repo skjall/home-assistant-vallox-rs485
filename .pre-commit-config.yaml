@@ -43,12 +43,3 @@ repos:
         entry: python3 scripts/_ha_standards/run.py commit-message
         language: system
         stages: [commit-msg]
-  - repo: local
-    hooks:
-      - id: pytest
-        name: pytest with coverage
-        entry: pytest --cov=custom_components/vallox_rs485 --cov-fail-under=95
-        language: system
-        types: [python]
-        pass_filenames: false
-        always_run: true

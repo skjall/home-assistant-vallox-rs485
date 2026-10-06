@@ -127,6 +127,67 @@ straight out of the file, so the PNG has to be **8-bit and not interlaced** -
 which is what any normal SVG renderer produces, and the reason the gate can
 check the house style at all instead of taking it on trust.
 
+## Schema validation is Probatio, not voluptuous
+
+Since Home Assistant 2026.9 the validation engine is
+[Probatio](https://probatio.frenck.dev), a clean-room reimplementation of
+voluptuous with the same public API. voluptuous is **no longer installed**;
+Home Assistant aliases the name in `sys.modules` at startup, so
+`import voluptuous as vol` still runs - against Probatio.
+
+That alias is invisible to a type checker. mypy resolves `import voluptuous`
+to whatever voluptuous a dependency happened to drag in and then reports every
+schema handed to `async_show_form` as the wrong type, because 2026.10
+annotates `data_schema` as `probatio.Schema`. So:
+
+```python
+import probatio
+
+probatio.Schema({probatio.Required(CONF_PIN): str})
+```
+
+Core does the same and bans `import voluptuous` in its own source. Probatio
+ships `py.typed`, and importing it requires **2026.9.0 or newer in
+`hacs.json`** - before that release the package is not installed at all.
+
+Probatio also offers what voluptuous never had, and reaching it means
+importing `probatio` rather than the compatibility surface: `Secret` to keep a
+password out of an error message, `Forbidden`, `Alias`, `TaggedUnion`,
+cross-field rules (`AtLeastOne`, `ExactlyOne`, `RequiredIf`), and `Invalid`
+errors carrying a `code`, a `translation_key` and `placeholders` instead of an
+English sentence to parse.
+
+Two things bit other integrations after 2026.9: **error messages are worded
+differently**, so a test asserting on validation text may need updating, and
+**validation is stricter in places**, which surfaces stored data that was
+quietly invalid before. An integration that validates its stored data on the
+way in but not on load is worth a second look.
+
+A model writing this code is probably older than Probatio and will reach for
+voluptuous or invent a validator. <https://probatio.frenck.dev/llms.txt> is
+the machine-readable index to point it at.
+
+## mypy is strict, except about somebody else's re-exports
+
+`mypy.ini` is a managed file, and both the hook and the workflow run
+`mypy --config-file mypy.ini`. It keeps `strict` on for the integration and
+relaxes exactly one setting for `homeassistant.*`:
+
+```ini
+[mypy-homeassistant.*]
+implicit_reexport = True
+```
+
+Home Assistant re-exports names implicitly all over. 2026.10 moved
+`BinarySensorDeviceClass` into `binary_sensor/const.py` and left it reachable
+from the package through a bare `from .const import ...  # noqa: F401`; core
+imports it from the package in dozens of places, so that is the intended path.
+`--no-implicit-reexport`, which `strict` turns on, then fails a correct import
+with *"does not explicitly export attribute"*. The answer is not to reach into
+`.const` - that module may not exist in the release a user is on - and not to
+scatter `type: ignore`, which `strict` later reports as unused. It is to stop
+pointing that rule at a package this repository does not own.
+
 ## Tests run in Docker, against the targeted Home Assistant
 
 `python3 scripts/_ha_standards/run.py tests` builds `Dockerfile.test` and runs

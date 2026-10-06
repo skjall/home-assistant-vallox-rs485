@@ -53,7 +53,7 @@ jobs:
           pip install mypy -r requirements-test.txt
           python scripts/ha_test_requirements.py > /tmp/components.txt
           pip install -r /tmp/components.txt
-      - run: mypy --strict --ignore-missing-imports custom_components
+      - run: mypy --config-file mypy.ini custom_components
 
   test:
     runs-on: ubuntu-latest

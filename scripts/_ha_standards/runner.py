@@ -1,4 +1,4 @@
-# Vendored from ha-integration-standards 0.3.1. Do not edit:
+# Vendored from ha-integration-standards 0.4.0. Do not edit:
 # `ha-standards sync` rewrites this file, and `run.py verify` fails the
 # commit when it has been changed by hand.
 
@@ -145,7 +145,8 @@ def types(argv: list[str] | None = None) -> int:
             "sh",
             "-ec",
             "pip install -q --root-user-action=ignore mypy; "
-            f"mypy --strict --ignore-missing-imports --cache-dir=/tmp/mypy {target}",
+            "mypy --config-file mypy.ini "
+            f"--cache-dir=/tmp/mypy {target}",
         ],
         network=True,
         as_user=False,
