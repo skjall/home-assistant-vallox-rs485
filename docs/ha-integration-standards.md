@@ -200,6 +200,15 @@ pytest inside it. This is not ceremony:
   and with `--network none`. A test run cannot leave anything in the working
   tree or reach the internet. Everything it produces lands in `.artefakte/`.
 
+**The image is rebuilt after a week, whether or not anything here changed.**
+Nothing in it is pinned by hand - `pytest-homeassistant-custom-component`
+decides which Home Assistant comes in, and it follows the releases, betas
+included. So an image that is still on disk is not an image that still tests
+what users run. A fortnight-old one reported correct code as wrong, because
+2026.9 annotated `data_schema` as voluptuous and 2026.10 annotates it as
+Probatio: the gate was right about the image and wrong about Home Assistant.
+A rebuild costs minutes, and it says why it is rebuilding.
+
 `pytest-homeassistant-custom-component` installs Home Assistant but **not the
 requirements of the components it pulls in** (bluetooth, usb, …). Do not pin
 those by hand — they drift from the release being tested and a dependency bot
